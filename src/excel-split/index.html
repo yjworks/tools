@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .modes { display: grid; gap: 8px; margin: 14px 0 12px; }
+  .modes label { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+  .modes label:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); }
+  .modes input { margin-top: 5px; flex: 0 0 auto; }
+  .modes small { display: block; color: var(--sub); font-size: 13px; }
+  .sub[hidden], .sub .field[hidden] { display: none; }
+  .tool label.field { max-width: 100%; }
+  .tool select { max-width: 100%; }
+  .sub .field { flex: 1 1 150px; min-width: 0; }
+  .sub select, .sub input[type=number] { width: 100%; }
+  .check { display: flex; gap: 8px; align-items: flex-start; font-size: 14.5px; margin: 0 0 12px; }
+  .check input { margin-top: 5px; flex: 0 0 auto; }
+  #panel[hidden] { display: none; }
+  .sheets { width: 100%; border-collapse: collapse; font-size: 14px; margin: 12px 0 4px; }
+  .sheets th, .sheets td { border-top: 1px solid var(--line); padding: 6px 4px; text-align: left; }
+  .sheets td:first-child { word-break: break-all; }
+  .sheets td.num, .sheets th.num { text-align: right; white-space: nowrap; }
+  .preview-note { font-size: 13.5px; color: var(--sub); margin: 4px 0 12px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>엑셀 시트 나누기</h1>
+  <p class="lede">엑셀 파일(.xlsx)의 시트를 하나씩 따로 된 파일로 나눕니다. 긴 시트를 몇 줄씩, 또는 지역·부서 같은 열 값별로 나눌 수도 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>엑셀 파일을 여기에 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">.xlsx 한 개</span>
+      <input type="file" accept=".xlsx,.xlsm,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    </label>
+    <p class="status" id="status"></p>
+
+    <div id="panel" hidden>
+      <table class="sheets" id="sheets"></table>
+
+      <div class="modes" role="radiogroup" aria-label="나누는 방식">
+        <label><input type="radio" name="mode" value="sheets" checked><span><b>시트마다 파일로</b><small>시트 하나가 파일 하나가 됩니다.</small></span></label>
+        <label><input type="radio" name="mode" value="rows"><span><b>한 시트를 줄 수로</b><small>예: 1,000줄씩. 제목 줄은 파일마다 다시 넣습니다.</small></span></label>
+        <label><input type="radio" name="mode" value="column"><span><b>한 시트를 열 값으로</b><small>예: '지역' 열이 서울·부산이면 서울 파일, 부산 파일.</small></span></label>
+      </div>
+
+      <div class="row sub" id="subSheet" hidden>
+        <label class="field">나눌 시트 <select id="sheet"></select></label>
+        <label class="field" id="rowsField">파일당 줄 수 (제목 줄 빼고) <input type="number" id="rowsPer" value="1000" min="1" step="1" inputmode="numeric"></label>
+        <label class="field" id="colField" hidden>기준 열 <select id="column"></select></label>
+      </div>
+      <label class="check sub" id="headerCheck" hidden><input type="checkbox" id="hasHeader" checked><span>첫 줄은 <b>제목 줄</b> (나눈 파일마다 맨 위에 넣기)</span></label>
+      <p class="preview-note" id="estimate"></p>
+
+      <div class="row">
+        <label class="field">저장 형식
+          <select id="format">
+            <option value="xlsx">엑셀 (.xlsx) — 서식 유지</option>
+            <option value="csv">CSV (UTF-8, BOM 포함) — 값만</option>
+          </select>
+        </label>
+      </div>
+      <div class="row">
+        <button id="run">나눠서 내려받기</button>
+      </div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>나눌 엑셀 파일(.xlsx)을 위 칸에 놓습니다. 들어 있는 시트와 줄 수가 표로 나옵니다.</li>
+      <li>나누는 방식을 고릅니다. <b>한 시트를 줄 수로</b>나 <b>열 값으로</b>를 고르면 나눌 시트와 줄 수, 기준 열을 정합니다. 아래에 몇 개 파일이 나올지 미리 보여 드립니다.</li>
+      <li>저장 형식을 고르고 <b>나눠서 내려받기</b>를 누릅니다. 파일이 여러 개면 zip 한 개로 묶어서, 하나면 그 파일 그대로 저장됩니다.</li>
+    </ol>
+
+    <h2>나눈 파일은 이렇게 만들어집니다</h2>
+    <table>
+      <tr><th>방식</th><th>파일 이름</th><th>들어가는 것</th></tr>
+      <tr><td>시트마다</td><td><code>원본_시트이름.xlsx</code></td><td>시트 전체. 글꼴·색·테두리·열 너비·셀 병합·틀 고정 유지</td></tr>
+      <tr><td>줄 수로</td><td><code>원본_시트_1.xlsx</code>, <code>_2</code> …</td><td>제목 줄 + 정한 줄 수만큼. 마지막 파일은 남은 줄만</td></tr>
+      <tr><td>열 값으로</td><td><code>원본_시트_서울.xlsx</code> …</td><td>제목 줄 + 그 값을 가진 줄. 값이 빈 줄은 <code>(빈 칸)</code> 파일로</td></tr>
+    </table>
+    <p><b>수식은 이렇게 됩니다.</b> 시트를 따로 떼어 내면 다른 시트를 가리키던 수식(<code>=요약!B3</code>)은 가리킬 곳이 없어 <code>#REF!</code>가 됩니다. 그래서 다른 시트·다른 파일을 가리키는 수식은 원본에 저장된 계산 결과 값으로 바꿉니다. 같은 시트 안만 가리키는 수식은 <b>시트마다</b> 방식에서 수식 그대로 둡니다. 줄 수·열 값으로 나눌 때는 줄 위치가 바뀌어 수식이 엉뚱한 칸을 가리키게 되므로 모두 값으로 넣습니다.</p>
+    <p><b>CSV로 저장하면</b> 서식 없이 값만 남습니다. 한국어 윈도우 엑셀에서 한글이 깨지지 않도록 UTF-8 앞에 BOM 표시를 붙이고, 줄 끝은 윈도우 방식(CRLF)으로 씁니다. 날짜는 <code>2024-05-06</code> 형태로 적습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>zip 파일 안의 한글 파일 이름이 깨지지 않나요?</summary>
+      <p>zip 안의 파일 이름은 UTF-8로 저장하고 "UTF-8 이름" 표시를 켜 둡니다. 요즘 쓰는 윈도우·macOS의 기본 압축 풀기와 반디집·7-Zip에서는 한글 이름이 그대로 보입니다. 아주 오래된 압축 프로그램에서는 깨져 보일 수 있습니다.</p></details>
+    <details><summary>열 값으로 나눴는데 파일이 너무 많이 나와요.</summary>
+      <p>기준 열에 서로 다른 값이 많으면(예: 주문번호) 값마다 파일이 생깁니다. 지역·부서·담당자처럼 값의 종류가 적은 열을 고르세요. 브라우저 메모리를 지키기 위해 한 번에 1,000개 파일까지만 만듭니다.</p></details>
+    <details><summary>숨긴 시트도 나눠지나요?</summary>
+      <p>엑셀의 <b>숨기기</b>로 숨긴 시트는 목록에 "숨김"으로 표시되고 함께 나눠집니다. 필요 없으면 나눈 뒤 지우면 됩니다. 매크로로만 보이게 한 시트(very hidden)는 건너뜁니다.</p></details>
+    <details><summary>.xls나 .csv 파일은 나눌 수 없나요?</summary>
+      <p>이 도구는 .xlsx만 읽습니다. .xls는 엑셀에서 .xlsx로 저장한 뒤 넣어 주세요. CSV는 시트가 하나뿐이라, 엑셀에서 열어 .xlsx로 저장하면 줄 수·열 값으로 나눌 수 있습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

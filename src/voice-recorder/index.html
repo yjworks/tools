@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  [hidden] { display: none !important; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 0 0 14px; align-items: end; }
+  .opts select { width: 100%; }
+  .check { display: flex; align-items: flex-start; gap: 8px; font-size: 14.5px; line-height: 1.45; cursor: pointer; }
+  .check input { margin-top: 3px; width: 18px; height: 18px; flex: 0 0 auto; }
+  .check small { display: block; color: var(--sub); font-size: 12.5px; }
+  .meter-wrap { margin: 0 0 12px; }
+  .meter { height: 14px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; }
+  .meter .fill { height: 100%; width: 0; background: var(--ok); transition: width .05s linear; }
+  .meter .fill.hot { background: var(--bad); }
+  .meter-info { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--sub); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .clock { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin: 0 0 8px; }
+  .clock.on { color: var(--bad); }
+  ul.takes { list-style: none; margin: 16px 0 0; padding: 0; }
+  ul.takes li { border-top: 1px solid var(--line); padding: 12px 0; }
+  ul.takes li:first-child { border-top: 0; }
+  ul.takes .head { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 14.5px; margin-bottom: 6px; }
+  ul.takes audio { width: 100%; display: block; margin: 0 0 8px; }
+  ul.takes .row { margin: 0; gap: 8px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>음성 녹음기</h1>
+  <p class="lede">마이크로 목소리를 녹음해 바로 들어 보고 파일로 저장합니다. 녹음하는 동안 소리 크기를 막대로 보여 주고, 저장할 때 브라우저 기본 형식과 WAV 중에서 고를 수 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 녹음은 이 기기에만 저장</p>
+
+  <section class="tool" id="tool">
+    <p class="status bad" id="unsupported" hidden></p>
+    <div id="setup" class="opts">
+      <label class="check"><input type="checkbox" id="raw"><span>원음 그대로 녹음<small>브라우저의 잡음 억제·에코 제거·자동 음량을 끕니다(악기·노래에 좋음)</small></span></label>
+      <label class="field">기본 저장 형식<select id="fmt"></select></label>
+    </div>
+
+    <div class="clock" id="clock">0:00</div>
+    <div class="meter-wrap">
+      <div class="meter"><div class="fill" id="fill"></div></div>
+      <div class="meter-info"><span id="levelDb">입력 레벨 —</span><span id="levelHint"></span></div>
+    </div>
+
+    <div class="row">
+      <button id="start">● 녹음 시작</button>
+      <button id="pause" class="ghost" hidden>일시정지</button>
+      <button id="stop" class="ghost" hidden>■ 정지</button>
+      <button id="test" class="ghost">마이크 확인</button>
+    </div>
+    <p class="status" id="status"></p>
+    <ul class="takes" id="takes"></ul>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li><b>마이크 확인</b>을 누르고 말해 보세요. 막대가 가운데쯤까지 움직이면 알맞은 크기입니다. 끝까지 차서 빨갛게 되면 마이크에서 조금 떨어지세요.</li>
+      <li><b>녹음 시작</b> → <b>정지</b>. 녹음이 목록에 쌓이고, 바로 재생해 들어 볼 수 있습니다.</li>
+      <li>녹음마다 <b>원본 저장</b>(브라우저가 만든 압축 파일) 또는 <b>WAV 저장</b>(무압축)을 누릅니다.</li>
+    </ol>
+
+    <h2>원본 파일과 WAV는 무엇이 다른가요</h2>
+    <p>브라우저는 녹음을 <b>압축된 형식</b>으로 만듭니다. 크롬·엣지는 보통 WebM(Opus), 사파리는 MP4(AAC, 확장자 .m4a), 파이어폭스는 Ogg·WebM(Opus)입니다. 이 도구는 시작할 때 브라우저에 형식마다 지원 여부를 물어서(<code>MediaRecorder.isTypeSupported</code>) 되는 것만 목록에 올립니다. 압축 파일은 1분에 수백 KB 정도로 작습니다.</p>
+    <p><b>WAV</b>는 압축하지 않은 소리 파형을 그대로 적은 파일입니다. 저장 버튼을 누르면 브라우저가 녹음 파일을 풀어(<code>decodeAudioData</code>) 파형으로 만들고, 이 도구가 샘플 하나하나를 16비트 정수로 바꿔 WAV 머리말을 붙입니다. 용량은 커지지만(48 kHz 스테레오 기준 1분에 약 11 MB) 대부분의 편집 프로그램·녹음 제출 양식에서 받아 줍니다. 원본보다 음질이 좋아지지는 않습니다.</p>
+    <h3>원음 그대로 녹음</h3>
+    <p>브라우저는 화상회의용으로 마이크 소리에 잡음 억제·에코 제거·자동 음량을 걸어 줍니다. 말소리에는 도움이 되지만 악기·노래는 소리가 뭉개지거나 크기가 출렁일 수 있습니다. 이럴 때 <b>원음 그대로 녹음</b>을 켜세요. 브라우저·기기에 따라 일부 처리는 끌 수 없을 수 있습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>MP3로 저장할 수 있나요?</summary>
+      <p>브라우저에는 MP3로 녹음하는 기능이 없어서 지원하지 않습니다. 대신 WAV로 저장하면 거의 모든 프로그램에서 열 수 있고, 필요하면 다른 변환 프로그램으로 MP3를 만드세요.</p></details>
+    <details><summary>휴대폰에서도 녹음되나요?</summary>
+      <p>최신 안드로이드 크롬·아이폰 사파리에서 녹음됩니다. 녹음 중 화면이 꺼지거나 다른 앱으로 넘어가면 녹음이 멈출 수 있으니 화면을 켜 둔 채로 녹음하세요.</p></details>
+    <details><summary>마이크 권한을 거부해 버렸어요.</summary>
+      <p>주소창 왼쪽의 자물쇠(사이트 정보) 아이콘에서 마이크를 허용으로 바꾸고 새로고침하세요. 휴대폰은 브라우저 앱의 사이트 설정에서 바꿀 수 있습니다.</p></details>
+    <details><summary>녹음이 서버에 남나요?</summary>
+      <p>남지 않습니다. 녹음은 이 탭의 메모리에만 있다가, 저장을 누르면 기기에 파일로 저장됩니다. 창을 닫으면 저장하지 않은 녹음은 사라집니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

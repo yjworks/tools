@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  input[type=date] { font: inherit; font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; min-width: 0; width: 100%; }
+  .dd-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 16px; }
+  .dd-tabs button { background: var(--accent-weak); color: var(--accent); }
+  .dd-tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+  .dd-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .dd-grid input[type=number] { width: 100%; }
+  .dd-result { margin-top: 16px; padding: 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .dd-result .out { font-size: 28px; }
+  .dd-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .dd-list { list-style: none; padding: 0; margin: 10px 0 0; font-size: 14.5px; }
+  .dd-list li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
+  .dd-list li:first-child { border-top: 0; }
+  .dd-sub { font-size: 15px; font-weight: 700; margin: 20px 0 10px; }
+  .guide .dd-hol { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 18px; font-size: 14.5px; }
+  .guide .dd-hol div { padding: 3px 0; border-bottom: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>D-day · 날짜 · 영업일 계산기</h1>
+  <p class="lede">두 날짜 사이 며칠인지, 오늘부터 100일째가 언제인지, 주말과 공휴일을 뺀 <b>영업일</b>이 며칠인지 계산합니다. 2025~2027년 공휴일·대체공휴일이 들어 있습니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="dd-tabs" role="tablist">
+      <button type="button" role="tab" data-tab="between" aria-selected="true">날짜 사이</button>
+      <button type="button" role="tab" data-tab="add" aria-selected="false">날짜 + N일</button>
+      <button type="button" role="tab" data-tab="biz" aria-selected="false">영업일</button>
+    </div>
+
+    <div data-panel="between">
+      <div class="dd-grid">
+        <label class="field">시작일 <input type="date" id="b-a"></label>
+        <label class="field">끝날 <input type="date" id="b-b"></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted"><input type="checkbox" id="b-inc"> 시작일을 1일째로 세기 (사귄 날·태어난 날 기념일)</label>
+      </div>
+      <div class="dd-result" id="b-out"></div>
+    </div>
+
+    <div data-panel="add" hidden>
+      <div class="dd-grid">
+        <label class="field">기준일 <input type="date" id="a-a"></label>
+        <label class="field">더할 날수 (빼려면 −)
+          <input type="number" id="a-n" value="100" step="1" min="-36500" max="36500" inputmode="numeric">
+        </label>
+      </div>
+      <div class="dd-quick" id="a-quick"></div>
+      <div class="row" style="margin-top:10px">
+        <label class="muted"><input type="checkbox" id="a-inc"> 기준일을 1일째로 세기 (100일 = 기준일 + 99일)</label>
+      </div>
+      <div class="dd-result" id="a-out"></div>
+    </div>
+
+    <div data-panel="biz" hidden>
+      <div class="dd-sub">기간 안의 영업일 수</div>
+      <div class="dd-grid">
+        <label class="field">시작일 <input type="date" id="z-a"></label>
+        <label class="field">끝날 <input type="date" id="z-b"></label>
+      </div>
+      <div class="dd-result" id="z-out"></div>
+      <div class="dd-sub">N영업일 뒤 날짜</div>
+      <div class="dd-grid">
+        <label class="field">기준일 <input type="date" id="y-a"></label>
+        <label class="field">영업일 수 (앞으로 세려면 −)
+          <input type="number" id="y-n" value="5" step="1" min="-3650" max="3650" inputmode="numeric">
+        </label>
+      </div>
+      <div class="dd-result" id="y-out"></div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ul>
+      <li><b>날짜 사이</b>: 두 날짜를 고르면 며칠 차이인지 나옵니다. 기념일처럼 시작한 날을 1일로 세려면 체크하세요.</li>
+      <li><b>날짜 + N일</b>: 기준일에서 N일 뒤(또는 앞) 날짜를 구합니다. 100일·1000일 버튼과 기념일 표가 함께 나옵니다.</li>
+      <li><b>영업일</b>: 토·일요일과 공휴일을 뺀 날수를 셉니다. 'N영업일 뒤'는 기준일 다음 날부터 셉니다.</li>
+    </ul>
+
+    <h2>날수를 세는 두 가지 방법</h2>
+    <p>같은 두 날짜라도 무엇을 세느냐에 따라 하루 차이가 납니다.</p>
+    <ul>
+      <li><b>지난 날수</b>(기본): 1월 1일부터 1월 2일까지는 1일입니다. 마감까지 남은 날, D-day, 대부분의 기간 계산이 이 방식입니다.</li>
+      <li><b>1일째부터 세기</b>: 시작한 날을 1일로 칩니다. 사귄 날·아기가 태어난 날부터 세는 100일 기념일이 이 방식이라, 1월 1일의 100일은 4월 10일입니다(1월 1일 + 99일).</li>
+    </ul>
+    <p>법률의 기간 계산(예: 민법의 초일 불산입 원칙)이나 계약서의 '영업일' 정의는 분야마다 다를 수 있습니다. 중요한 기한은 해당 법령·계약서의 기준을 먼저 확인하세요.</p>
+
+    <h2>영업일과 공휴일 기준</h2>
+    <p>이 계산기의 영업일은 <b>토요일·일요일과 관공서 공휴일(대체공휴일·선거일·임시공휴일 포함)을 뺀 날</b>입니다. 기간 영업일 수는 시작일과 끝날을 모두 포함해 셉니다. 회사·은행의 자체 휴무일, 근로자의 날(2025년 5월 1일, 당시 관공서 공휴일 아님)은 빠져 있지 않습니다.</p>
+    <p><b>들어 있는 공휴일: 2025년, 2026년, 2027년</b> (목록 기준일 2026년 9월 25일). 이 밖의 해는 주말만 빼고 계산하며 화면에 알려 드립니다. 목록을 만든 뒤에 새로 지정되는 임시공휴일·보궐선거일 등은 빠져 있을 수 있습니다.</p>
+    <ul>
+      <li>2025년: 우주항공청 「2025년 월력요항」 + <a href="https://www.korea.kr/briefing/pressReleaseView.do?newsId=156670135" rel="noopener">1월 27일 임시공휴일(인사혁신처, 2025.1.14 국무회의 의결)</a> + <a href="https://www.korea.kr/news/policyNewsView.do?newsId=148941443" rel="noopener">6월 3일 제21대 대통령선거 임시공휴일(2025.4.8 국무회의)</a>. 10월 10일은 임시공휴일로 지정되지 않았습니다.</li>
+      <li>2026년: <a href="https://www.korea.kr/briefing/pressReleaseView.do?newsId=156738544" rel="noopener">우주항공청 「2026년 월력요항」</a>(6월 3일 지방선거 포함) + <a href="https://www.korea.kr/news/policyNewsView.do?newsId=148962129" rel="noopener">노동절(5월 1일) 공휴일 지정</a> + <a href="https://www.korea.kr/news/policyNewsView.do?newsId=148959060" rel="noopener">제헌절(7월 17일) 공휴일 재지정</a>. 추석 다음 날인 9월 28일은 임시공휴일로 지정되지 않았습니다.</li>
+      <li>2027년: <a href="https://www.kasa.go.kr/prog/plcyBrf/brief/kor/sub01_01_04/view.do?plcyBrfNo=431" rel="noopener">우주항공청 「2027년 월력요항」</a>(2026년 6월 발표, 노동절·제헌절과 대체공휴일 포함).</li>
+    </ul>
+    <details><summary>공휴일 전체 목록 보기</summary><div class="dd-hol" id="holList"></div></details>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>100일 기념일은 어떻게 계산하나요?</summary>
+      <p>시작한 날을 1일째로 세므로 시작일에 99일을 더한 날이 100일입니다. '날짜 + N일' 탭에서 '기준일을 1일째로 세기'를 켜고 100을 넣거나, 아래 기념일 표를 보세요.</p></details>
+    <details><summary>토요일이 공휴일이면 대체공휴일이 생기나요?</summary>
+      <p>대체공휴일은 관공서의 공휴일에 관한 규정이 정한 날에만 생깁니다. 예를 들어 2026년 추석 연휴 마지막 날(9월 26일)은 토요일이지만 설·추석 연휴는 일요일이나 다른 공휴일과 겹칠 때만 대체되므로 대체공휴일이 없습니다. 이 계산기는 월력요항과 정부 발표에 나온 날짜를 그대로 씁니다.</p></details>
+    <details><summary>'3영업일 이내'는 오늘부터 세나요?</summary>
+      <p>보통 요청한 날 다음 영업일을 1영업일로 셉니다. 이 계산기의 'N영업일 뒤'도 기준일 다음 날부터 셉니다. 기준일이 휴일이어도 마찬가지입니다. 다만 회사·기관마다 기준이 다를 수 있으니 약관이나 안내문을 함께 확인하세요.</p></details>
+    <details><summary>2028년 이후도 계산할 수 있나요?</summary>
+      <p>날짜 차이와 N일 뒤 계산은 연도와 상관없이 됩니다. 영업일은 공휴일 목록이 있는 2025~2027년만 공휴일을 빼고, 그 밖의 해는 주말만 빼서 계산합니다. 해당 해의 월력요항이 발표되면 목록을 추가하겠습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

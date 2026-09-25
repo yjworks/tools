@@ -1,0 +1,11 @@
+{
+  "name": "HWP 텍스트 추출",
+  "title": "HWP·HWPX 텍스트 추출 — 한글 프로그램 없이 글자만 꺼내기",
+  "desc": "한글 프로그램이 없어도 .hwp·.hwpx 문서의 글자를 꺼내 복사하거나 .txt로 저장합니다. 문서는 서버로 보내지 않습니다.",
+  "keywords": ["hwp 텍스트 추출", "hwp 열기", "한글 파일 열기", "hwpx 텍스트", "한글 없이 hwp 보기", "hwp txt 변환"],
+  "group": "문서·텍스트",
+  "order": 420,
+  "iconText": "HWP",
+  "color": "#1d4ed8",
+  "category": "UtilitiesApplication"
+}

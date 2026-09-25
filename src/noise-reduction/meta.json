@@ -1,0 +1,11 @@
+{
+  "name": "음성 잡음 제거",
+  "title": "음성 잡음 제거 — 녹음 배경 소음 줄이기 (RNNoise, 업로드 없음)",
+  "desc": "녹음 파일의 에어컨·선풍기·키보드 같은 배경 잡음을 RNNoise로 줄입니다. 전후 비교와 적용 강도 조절 후 WAV로 저장하며 파일은 서버로 보내지 않습니다.",
+  "keywords": ["잡음 제거", "노이즈 제거", "음성 노이즈 제거", "녹음 잡음 제거", "배경 소음 제거", "rnnoise"],
+  "group": "오디오·영상",
+  "order": 350,
+  "iconText": "NR",
+  "color": "#047857",
+  "category": "MultimediaApplication"
+}

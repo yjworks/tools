@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  input[type=date] { font: inherit; font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; min-width: 0; width: 100%; }
+  .ag-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .ag-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 16px; }
+  .ag-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--bg); min-width: 0; }
+  .ag-card b { display: block; font-size: 26px; line-height: 1.25; }
+  .ag-card.main { border-color: var(--accent); background: var(--accent-weak); }
+  .ag-card.main b { color: var(--accent); font-size: 32px; }
+  .ag-card small { display: block; color: var(--sub); font-size: 13px; }
+  .guide .ag-scroll { overflow-x: auto; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>만 나이 계산기</h1>
+  <p class="lede">생년월일을 넣으면 <b>만 나이</b>와 연 나이·세는 나이, 다음 생일까지 남은 날, 태어난 지 며칠째인지를 한 번에 보여 줍니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="ag-inputs">
+      <label class="field">생년월일
+        <input type="date" id="birth" min="1900-01-01" max="2100-12-31">
+      </label>
+      <label class="field">기준일 (기본: 오늘)
+        <input type="date" id="ref" min="1900-01-01" max="2100-12-31">
+      </label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="small ghost" id="today" type="button">기준일을 오늘로</button>
+    </div>
+    <p class="status" id="status"></p>
+    <div class="ag-cards" id="cards"></div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>생년월일을 고릅니다. 기준일은 처음에 오늘로 맞춰져 있습니다.</li>
+      <li>특정 날짜의 나이가 궁금하면(예: 계약일, 시험일, 입사일) 기준일을 바꾸세요.</li>
+      <li>만 나이가 가장 크게 나오고, 아래에 연 나이·세는 나이, 다음 생일 D-day, 살아온 날수가 나옵니다.</li>
+    </ol>
+
+    <h2>세 가지 나이는 이렇게 셉니다</h2>
+    <div class="ag-scroll">
+    <table>
+      <tr><th>나이</th><th>계산 방법</th><th>주로 쓰이는 곳</th></tr>
+      <tr><td><b>만 나이</b></td><td>태어나면 0살, 생일이 지날 때마다 1살 더함</td><td>법령·계약·행정 (기본)</td></tr>
+      <tr><td>연 나이</td><td>기준 연도 − 태어난 연도</td><td>일부 법률이 따로 정한 경우</td></tr>
+      <tr><td>세는 나이</td><td>태어나면 1살, 1월 1일마다 1살 더함 (= 연 나이 + 1)</td><td>일상 대화의 옛 관습</td></tr>
+    </table>
+    </div>
+    <p><b>만 나이 통일법</b>: 민법 제158조와 행정기본법 제7조의2가 개정·신설되어 <b>2023년 6월 28일</b>부터 시행되었습니다(2022년 12월 27일 공포). 법령·계약서·조례 등에 나오는 나이는 따로 정한 규정이 없으면 <b>출생일을 포함해 만 나이로 계산하고 연수로 표시</b>합니다. 1살이 안 되면 개월 수로 표시할 수 있습니다.
+      출처: <a href="https://www.korea.kr/briefing/policyBriefingView.do?newsId=156577051" rel="noopener">대한민국 정책브리핑 「만 나이 통일법 시행」</a>, <a href="https://www.korea.kr/news/policyNewsView.do?newsId=148909874" rel="noopener">「'만 나이 통일법' 공포…내년 6월 28일부터 시행」</a></p>
+    <p>다만 병역·청소년 보호처럼 법률에서 연 나이를 따로 정해 둔 분야는 그 기준을 따릅니다. 해당 제도의 안내를 함께 확인하세요.</p>
+
+    <h3>살아온 날수와 '며칠째'</h3>
+    <p>'살아온 날수'는 생일부터 기준일까지 지난 날수입니다. 아기의 100일처럼 태어난 날을 1일째로 세는 방식은 여기에 1을 더한 값이며, 따로 '며칠째'로 보여 드립니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>생일 당일에는 몇 살인가요?</summary>
+      <p>생일 당일부터 한 살이 늘어난 것으로 계산합니다. 법은 출생일을 산입해 만 나이를 세므로, 생일 전날이 지나면 만 1년이 채워집니다.</p></details>
+    <details><summary>2월 29일에 태어났으면 평년엔 언제 나이가 바뀌나요?</summary>
+      <p>이 계산기는 평년에는 2월 28일이 지나야 1년이 채워진다고 보고 <b>3월 1일</b>에 나이가 바뀌는 것으로 계산합니다. 다음 생일 D-day도 평년에는 3월 1일 기준입니다. 법적 판단이 필요한 일이라면 해당 기관에 확인하세요.</p></details>
+    <details><summary>세는 나이는 이제 쓰면 안 되나요?</summary>
+      <p>일상 대화에서 쓰는 것을 막는 규정은 없습니다. 다만 법령·계약·행정 서류에서는 만 나이가 기본이므로, 서류에 나이를 적을 때는 만 나이를 쓰는 것이 혼동이 적습니다.</p></details>
+    <details><summary>미래 날짜를 기준일로 넣어도 되나요?</summary>
+      <p>네. 예를 들어 입학일·전역일·정년 같은 날짜를 기준일로 넣으면 그날의 만 나이를 미리 알 수 있습니다. 기준일이 생년월일보다 앞서면 계산하지 않습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -11,8 +11,15 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@shiguredo/rnnoise-wasm": "^2025.1.5",
+    "cfb": "^1.2.2",
+    "exceljs": "^4.4.0",
     "fflate": "^0.8.3",
+    "jsqr": "^1.4.0",
+    "mp4-muxer": "^5.2.2",
+    "occt-import-js": "^0.0.23",
     "pdf-lib": "^1.17.1",
+    "qrcode-generator": "^2.0.4",
     "three": "^0.186.1"
   },
   "devDependencies": {

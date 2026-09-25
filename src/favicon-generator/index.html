@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .tabs { display: flex; gap: 6px; margin: 0 0 14px; }
+  .tabs button { flex: 1; background: var(--accent-weak); color: var(--accent); }
+  .tabs button[aria-selected=true] { background: var(--accent); color: #fff; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+  .opts select, .opts input { width: 100%; }
+  .opts input[type=color] { height: 42px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 3px; }
+  .previews { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; padding: 14px; margin: 12px 0; border-radius: 10px;
+    background-color: #fff; background-image: linear-gradient(45deg, #eceef1 25%, transparent 25%), linear-gradient(-45deg, #eceef1 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #eceef1 75%), linear-gradient(-45deg, transparent 75%, #eceef1 75%);
+    background-size: 12px 12px; background-position: 0 0, 0 6px, 6px -6px, -6px 0; border: 1px solid var(--line); }
+  .previews figure { margin: 0; text-align: center; font-size: 11.5px; color: #5b606b; }
+  .previews canvas { display: block; margin: 0 auto 4px; }
+  .previews .big { width: 96px; height: 96px; }
+  .tabbar { display: flex; align-items: center; gap: 8px; background: #dfe3ea; color: #222; border-radius: 8px 8px 0 0; padding: 7px 12px; font-size: 13px; max-width: 240px; }
+  .tabbar canvas { width: 16px; height: 16px; flex: 0 0 auto; }
+  .tabbar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  pre.code { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; overflow-x: auto; white-space: pre; margin: 6px 0 8px; max-width: 100%; }
+  h3.sub { font-size: 15px; margin: 18px 0 2px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>파비콘 만들기 — ICO·애플 아이콘·manifest 한 번에</h1>
+  <p class="lede">로고 이미지나 글자·이모지로 <b>favicon.ico(16·32·48)</b>, 애플 터치 아이콘(180), 안드로이드 아이콘(192·512), site.webmanifest를 만들고 ZIP 하나로 내려받습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabText" aria-selected="true">글자·이모지로</button>
+      <button role="tab" id="tabImg" aria-selected="false">이미지로</button>
+    </div>
+
+    <div id="textPane">
+      <div class="opts">
+        <label class="field">글자 (1~3자) <input type="text" id="glyph" value="D" maxlength="8" autocomplete="off"></label>
+        <label class="field">글자 색 <input type="color" id="fgc" value="#ffffff"></label>
+      </div>
+    </div>
+    <div id="imgPane" hidden>
+      <label class="drop" tabindex="0">
+        <b>로고 이미지를 고르세요</b>
+        <span class="muted">PNG(투명 배경) · SVG · JPG · WEBP, 정사각형 512px 이상이면 가장 좋습니다</span>
+        <input type="file" accept="image/png,image/svg+xml,image/jpeg,image/webp">
+      </label>
+      <div class="opts">
+        <label class="field">맞추기
+          <select id="fit"><option value="contain">전체 보이기</option><option value="cover">꽉 채우기(가운데 자르기)</option></select>
+        </label>
+        <label class="field">안쪽 여백 <span class="muted" id="padVal">0%</span>
+          <input type="range" id="pad" min="0" max="25" value="0">
+        </label>
+      </div>
+    </div>
+
+    <div class="opts">
+      <label class="field">배경 모양
+        <select id="shape">
+          <option value="rounded">둥근 사각형</option>
+          <option value="square">사각형</option>
+          <option value="circle">원</option>
+          <option value="none">배경 없음(투명)</option>
+        </select>
+      </label>
+      <label class="field">배경색 <input type="color" id="bgc" value="#2f6fed"></label>
+      <label class="field">사이트 이름 <input type="text" id="siteName" placeholder="내 사이트" autocomplete="off"></label>
+      <label class="field">파일을 둘 경로 <input type="text" id="path" value="/" autocomplete="off"></label>
+    </div>
+
+    <div class="previews" id="previews"></div>
+    <div class="row">
+      <button id="zip">ZIP으로 모두 저장</button>
+      <button class="ghost" id="ico">favicon.ico만 저장</button>
+    </div>
+
+    <h3 class="sub">&lt;head&gt; 안에 붙여 넣을 코드</h3>
+    <pre class="code" id="html"></pre>
+    <button class="small ghost" id="copyHtml">코드 복사</button>
+    <h3 class="sub">site.webmanifest (ZIP에 들어 있습니다)</h3>
+    <pre class="code" id="manifest"></pre>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li><b>글자·이모지로</b> 만들거나 <b>이미지로</b> 탭에서 로고를 고릅니다.</li>
+      <li>배경 모양과 색을 고르고, 미리보기에서 16px 크기로도 알아볼 수 있는지 확인합니다. 브라우저 탭에는 이 크기로 나옵니다.</li>
+      <li><b>ZIP으로 모두 저장</b>한 뒤 파일을 사이트의 루트(또는 "파일을 둘 경로")에 올리고, 위 코드를 모든 페이지의 <code>&lt;head&gt;</code>에 붙입니다.</li>
+    </ol>
+
+    <h2>파일마다 쓰임</h2>
+    <table>
+      <tr><th>파일</th><th>쓰는 곳</th></tr>
+      <tr><td>favicon.ico (16·32·48)</td><td>브라우저 탭, 즐겨찾기, 오래된 브라우저·윈도 바로가기</td></tr>
+      <tr><td>favicon-16x16.png, 32x32.png</td><td>PNG 파비콘을 읽는 최신 브라우저</td></tr>
+      <tr><td>apple-touch-icon.png (180)</td><td>아이폰·아이패드 "홈 화면에 추가"</td></tr>
+      <tr><td>android-chrome-192·512.png</td><td>안드로이드 홈 화면, 설치형 웹앱(PWA) — manifest에서 지정</td></tr>
+      <tr><td>site.webmanifest</td><td>앱 이름·아이콘·테마 색 정보</td></tr>
+    </table>
+
+    <h2>ICO 파일은 어떻게 만드나요</h2>
+    <p>ICO는 여러 크기의 그림을 한 파일에 담는 상자입니다. 맨 앞 6바이트에 "아이콘 파일이고 그림이 몇 장"인지 적고, 이어서 그림마다 16바이트짜리 목록(가로·세로, 색 깊이 32비트, 데이터 크기, 파일 안 위치)을 둔 뒤 실제 그림을 차례로 붙입니다. 이 도구는 그림 자리에 <b>PNG를 그대로</b> 넣습니다. 윈도 비스타 이후와 현재의 주요 브라우저는 PNG가 든 ICO를 읽습니다.</p>
+    <p>작은 크기는 큰 그림을 한 번에 줄이면 선이 뭉개지므로, 512px로 먼저 그린 뒤 절반씩 여러 번 줄여 16·32·48px을 만듭니다. 애플 터치 아이콘은 투명한 부분이 검게 보일 수 있어 항상 배경색을 채우고, 모서리는 iOS가 알아서 둥글게 깎으므로 사각형으로 만듭니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>파비콘을 바꿨는데 브라우저에 예전 아이콘이 나와요.</summary>
+      <p>브라우저가 파비콘을 오래 캐시하기 때문입니다. 새 창(시크릿 모드)으로 열어 보거나, 코드의 주소 뒤에 <code>?v=2</code>처럼 버전을 붙이면 바로 바뀝니다.</p></details>
+    <details><summary>SVG 파비콘도 필요하나요?</summary>
+      <p>필수는 아닙니다. 이 도구가 만드는 ICO·PNG만으로 주요 브라우저와 휴대폰 홈 화면을 모두 채울 수 있습니다. 로고가 SVG로 있다면 <code>&lt;link rel="icon" type="image/svg+xml" href="/favicon.svg"&gt;</code>를 한 줄 더 넣어도 됩니다.</p></details>
+    <details><summary>이모지를 쓰면 기기마다 모양이 다른가요?</summary>
+      <p>이모지는 지금 쓰는 기기의 글꼴로 그려서 이미지로 저장합니다. 저장된 파일은 어느 기기에서나 같은 모양으로 보이지만, 만들 때의 기기(애플·구글·윈도)에 따라 그림체가 다릅니다.</p></details>
+    <details><summary>로고 이미지가 서버로 올라가나요?</summary>
+      <p>아니요. 그리기, 크기 줄이기, ICO·ZIP 묶기까지 모두 이 브라우저 안에서 합니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

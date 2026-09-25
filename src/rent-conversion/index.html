@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 12px; }
+  .grid input { width: 100%; }
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 14px; }
+  .tabs button[aria-pressed=false] { background: var(--accent-weak); color: var(--accent); }
+  .rate { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin: 0 0 12px; }
+  .rate label { flex: 1 1 150px; }
+  .rate input { width: 100%; }
+  .big { font-size: 26px; font-weight: 800; margin: 14px 0 0; word-break: keep-all; }
+  .note { font-size: 13px; color: var(--sub); margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>전월세 전환 계산기</h1>
+  <p class="lede">보증금을 월세로, 월세를 보증금으로 바꿀 때 얼마가 되는지 계산합니다. 기본 전환율은 주택임대차보호법상 상한인 <b>연 5.0%</b>(기준금리 3.00% + 2%)입니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="tabs" role="group" aria-label="계산 종류">
+      <button type="button" class="small" data-mode="d2r" aria-pressed="true">보증금 → 월세</button>
+      <button type="button" class="small" data-mode="r2d" aria-pressed="false">월세 → 보증금</button>
+      <button type="button" class="small" data-mode="rate" aria-pressed="false">전환율 확인</button>
+    </div>
+    <div class="rate" id="rateRow">
+      <label class="field">전환율 (연 %)<input type="number" id="rate" inputmode="decimal" step="0.1" min="0" max="30"></label>
+      <button type="button" class="ghost small" id="resetRate">법정 상한으로</button>
+    </div>
+    <div class="grid" id="fields"></div>
+    <div id="out"></div>
+    <p class="status" id="status"></p>
+    <p class="note" id="basis"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ul>
+      <li><b>보증금 → 월세:</b> 월세로 돌릴 보증금 액수를 넣으면 늘어나는 월세를 보여 줍니다. 예: 보증금 3억 중 1억을 월세로 바꾸는 경우 1억을 넣습니다.</li>
+      <li><b>월세 → 보증금:</b> 줄이고 싶은 월세를 넣으면 대신 올려야 하는 보증금을 보여 줍니다.</li>
+      <li><b>전환율 확인:</b> 집주인이 제시한 조건(보증금을 얼마 내리고 월세를 얼마 올리는지)을 넣으면 연 전환율을 거꾸로 계산해 법정 상한을 넘는지 알려 줍니다.</li>
+    </ul>
+    <p>전환율 칸은 직접 바꿀 수 있습니다. 기준금리가 바뀌었거나 다른 비율로 계산해 보고 싶을 때 고쳐 쓰세요.</p>
+
+    <h2>법정 전환율 상한</h2>
+    <p>주택임대차보호법 제7조의2는 임대차 계약 중이나 갱신할 때 <b>보증금의 전부 또는 일부를 월세로 바꾸는 경우</b>, 바뀌는 보증금에 아래 두 비율 중 <b>낮은 비율</b>을 곱한 월차임을 넘지 못하게 합니다.</p>
+    <ol>
+      <li>대통령령으로 정하는 비율: <b>연 10%</b> (시행령 제9조제1항, "연 1할")</li>
+      <li>한국은행 기준금리 + 대통령령으로 정하는 이율: <b>기준금리 + 연 2%</b> (시행령 제9조제2항)</li>
+    </ol>
+    <table>
+      <tr><th>항목</th><th>값</th></tr>
+      <tr><td>한국은행 기준금리</td><td>연 3.00% (2026. 8. 27. 금융통화위원회 결정)</td></tr>
+      <tr><td>기준금리 + 2%</td><td>연 5.00%</td></tr>
+      <tr><td>법정 상한 (둘 중 낮은 값)</td><td><b>연 5.00%</b></td></tr>
+    </table>
+    <p class="muted">2026년 9월 25일 기준. 출처: 한국은행 기준금리 추이(bok.or.kr), 주택임대차보호법 제7조의2 및 같은 법 시행령 제9조(law.go.kr, 2025. 3. 1. 시행본). 기준금리는 금융통화위원회 회의 때마다 바뀔 수 있으니 계약 시점의 금리를 확인하세요.</p>
+    <p><code>월세 = 전환 보증금 × 전환율 ÷ 12</code> · <code>보증금 = 월세 × 12 ÷ 전환율</code></p>
+    <p>이 상한은 <b>보증금을 월세로 바꿀 때</b>만 적용됩니다. 반대로 월세를 보증금으로 바꾸는 경우는 법에 정한 비율이 없어 당사자가 합의하는 비율을 씁니다. 또 이 비율은 법이 정한 최대치이고, 실제 시장에서 거래되는 전월세 전환율은 지역·주택 유형에 따라 이와 다릅니다. 상가 건물은 상가건물 임대차보호법이 따로 적용됩니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>새로 계약할 때도 연 5% 상한이 적용되나요?</summary>
+      <p>제7조의2는 기존 계약 기간 중이나 계약을 갱신하면서 보증금을 월세로 돌리는 경우를 대상으로 합니다. 전혀 새로운 임차인과 처음 맺는 계약의 보증금·월세 조합은 원칙적으로 당사자가 정합니다.</p></details>
+    <details><summary>상한보다 많이 낸 월세는 돌려받을 수 있나요?</summary>
+      <p>주택임대차보호법 제10조의2는 제7조의2를 넘는 차임을 지급한 경우 초과 지급한 금액의 반환을 청구할 수 있다고 정합니다. 분쟁이 생기면 주택임대차분쟁조정위원회에 조정을 신청할 수 있습니다.</p></details>
+    <details><summary>전환율 4%와 5%는 월세가 얼마나 차이 나나요?</summary>
+      <p>보증금 1억 원을 월세로 바꾸면 연 4%는 월 333,333원, 연 5%는 월 416,667원입니다. 1%포인트 차이가 1억 원당 월 약 8만 3천 원 차이입니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

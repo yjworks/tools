@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .py-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: end; }
+  .py-grid input { width: 100%; font-size: 20px; }
+  .py-eq { font-size: 22px; font-weight: 800; color: var(--sub); padding-bottom: 10px; }
+  @media (max-width: 480px) { .py-grid { grid-template-columns: 1fr; } .py-eq { display: none; } }
+  .py-sum { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); }
+  .py-sum .out { font-size: 20px; }
+  .py-scroll { overflow-x: auto; margin-top: 10px; }
+  .py-table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  .py-table th, .py-table td { border: 1px solid var(--line); padding: 6px 8px; text-align: right; white-space: nowrap; }
+  .py-table th { background: var(--bg); text-align: center; }
+  .py-table tr.hit td { background: var(--accent-weak); }
+  .py-sub { font-size: 15px; font-weight: 700; margin: 20px 0 6px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>평 ↔ ㎡ 변환</h1>
+  <p class="lede">아파트·상가 면적을 <b>평과 제곱미터(㎡)</b>로 서로 바꿉니다. 1평 = 400/121 ㎡ ≈ 3.3058 ㎡ 로 계산하고, 전용·공급면적 표도 함께 보여 줍니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="py-grid">
+      <label class="field">제곱미터 (㎡)
+        <input type="text" id="m2" inputmode="decimal" placeholder="예: 84" autocomplete="off">
+      </label>
+      <div class="py-eq" aria-hidden="true">⇄</div>
+      <label class="field">평
+        <input type="text" id="py" inputmode="decimal" placeholder="예: 25.4" autocomplete="off">
+      </label>
+    </div>
+    <p class="status" id="status"></p>
+    <div class="py-sum" id="sum" hidden></div>
+
+    <div class="py-sub">많이 쓰는 전용면적</div>
+    <div class="row">
+      <label class="field">전용률 가정 (%)
+        <input type="number" id="ratio" value="75" min="40" max="100" step="1" style="width:110px">
+      </label>
+      <span class="muted" style="flex:1;min-width:180px">공급면적 칸은 <b>전용면적 ÷ 전용률</b>로 계산한 추정치입니다. 실제 값은 단지마다 다릅니다.</span>
+    </div>
+    <div class="py-scroll"><table class="py-table" id="table"></table></div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>㎡ 칸이나 평 칸 중 아는 쪽에 숫자를 넣으면 다른 칸이 바로 바뀝니다. 쉼표나 '㎡', '평'이 붙어 있어도 됩니다.</li>
+      <li>아래 표에서 59㎡·84㎡ 같은 전용면적이 몇 평인지 볼 수 있습니다. 입력한 ㎡와 가장 가까운 줄이 강조됩니다.</li>
+      <li>분양 광고의 '○○평형'과 비교하려면 전용률을 바꿔 공급면적을 가늠해 보세요.</li>
+    </ol>
+
+    <h2>1평은 왜 3.3058㎡인가요</h2>
+    <p>평(坪)은 <b>한 변이 6자(尺)인 정사각형의 넓이</b>입니다. 우리나라에 미터법이 들어올 때 1자를 <b>10/33 m</b>(약 30.3cm)로 정했기 때문에 계산은 이렇게 됩니다.</p>
+    <ul>
+      <li>6자 = 6 × 10/33 m = 20/11 m ≈ 1.818 m</li>
+      <li>1평 = (20/11 m)² = <b>400/121 ㎡</b> ≈ 3.305785 ㎡</li>
+      <li>거꾸로 1㎡ = 121/400 평 = <b>0.3025평</b></li>
+    </ul>
+    <p>이 도구는 3.3이나 3.3058 같은 반올림 값 대신 400/121을 그대로 써서 계산합니다. 그래서 121평은 정확히 400㎡로 나옵니다. '㎡ × 0.3025'로 계산해도 같은 결과입니다.
+      참고: <a href="https://ko.wikipedia.org/wiki/%ED%8F%89_(%EB%8B%A8%EC%9C%84)" rel="noopener">위키백과 「평 (단위)」</a></p>
+    <p>평은 법정 계량 단위가 아니어서 2007년 7월부터 거래·광고 등 공식 표기에는 ㎡를 쓰도록 하고 있습니다(현 「계량에 관한 법률」). 그래서 분양 공고와 등기부, 건축물대장에는 ㎡로만 적혀 있습니다.</p>
+
+    <h2>전용면적·공급면적·계약면적</h2>
+    <ul>
+      <li><b>전용면적</b>: 현관문 안쪽, 우리 집만 쓰는 공간의 넓이입니다. 발코니(확장 전)는 들어가지 않습니다. '84㎡'처럼 주택형 이름에 붙는 숫자가 보통 전용면적입니다.</li>
+      <li><b>공급면적</b>: 전용면적 + 주거공용면적(계단·복도·엘리베이터 등). 예전 광고의 '○○평형'은 대개 이 공급면적을 평으로 바꾼 값이라, 전용면적 평수보다 큽니다.</li>
+      <li><b>계약면적</b>: 공급면적 + 기타공용면적(관리사무소·주차장 등).</li>
+    </ul>
+    <p>전용률(전용 ÷ 공급)은 단지 구조에 따라 다르므로, 정확한 공급면적은 분양 공고나 건축물대장에서 확인하세요. 전용 85㎡ 이하는 주택법의 '국민주택규모'에 해당해 84㎡ 안팎 주택형이 많습니다(<a href="https://www.law.go.kr/%EB%B2%95%EB%A0%B9/%EC%A3%BC%ED%83%9D%EB%B2%95" rel="noopener">주택법 제2조</a>).</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>84㎡는 몇 평인가요?</summary>
+      <p>전용면적 84㎡는 84 × 121 ÷ 400 = 약 <b>25.41평</b>입니다. 흔히 말하는 '30평대'는 공급면적 기준이라, 전용 평수와 비교하면 차이가 납니다.</p></details>
+    <details><summary>3.3으로 나누면 안 되나요?</summary>
+      <p>대략적인 값은 비슷하지만 면적이 클수록 오차가 커집니다. 예를 들어 330㎡를 3.3으로 나누면 100평, 정확히 계산하면 99.83평입니다. 평당 가격처럼 곱해서 쓰는 값은 작은 차이도 커질 수 있으니 정확한 값을 쓰는 편이 낫습니다.</p></details>
+    <details><summary>평당 가격은 어떻게 ㎡당 가격으로 바꾸나요?</summary>
+      <p>평당 가격 × 121 ÷ 400 = ㎡당 가격입니다. 예를 들어 평당 3,000만 원은 ㎡당 약 907.5만 원입니다. 반대로 ㎡당 가격 × 400 ÷ 121 = 평당 가격입니다.</p></details>
+    <details><summary>일본의 평(坪, 쓰보)과 같은가요?</summary>
+      <p>1자를 10/33 m로 정한 곡척을 기준으로 하므로 계산값은 같습니다(1평 ≈ 3.3058㎡). 중국·대만 등 다른 지역의 면적 단위와는 다를 수 있습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

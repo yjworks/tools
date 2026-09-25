@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .tabs { display: flex; gap: 6px; margin: 0 0 14px; }
+  .tabs button { flex: 1; background: var(--accent-weak); color: var(--accent); }
+  .tabs button[aria-selected=true] { background: var(--accent); color: #fff; }
+  .pad { display: block; width: 100%; height: 240px; touch-action: none; border: 1px solid var(--line); border-radius: 10px; cursor: crosshair;
+    background: #fff linear-gradient(to bottom, transparent 74%, #d5d8de 74%, #d5d8de calc(74% + 1px), transparent calc(74% + 1px)); }
+  .checker { background-color: #fff; background-image: linear-gradient(45deg, #e6e7ea 25%, transparent 25%), linear-gradient(-45deg, #e6e7ea 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e6e7ea 75%), linear-gradient(-45deg, transparent 75%, #e6e7ea 75%);
+    background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0; border: 1px solid var(--line); border-radius: 10px; }
+  #photoPrev { display: block; max-width: 100%; max-height: 50vh; margin: 12px auto; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 12px 0; }
+  .opts input[type=range], .opts select { width: 100%; }
+  .opts input[type=color] { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 3px; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--sub); }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>서명 → 투명 PNG 만들기</h1>
+  <p class="lede">손가락·마우스로 직접 쓰거나, 종이에 쓴 서명을 찍어 올리면 <b>배경이 투명한 서명 이미지</b>로 만들어 드립니다. 문서·PDF 위에 올려 쓰기 좋습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabDraw" aria-selected="true">✍️ 직접 쓰기</button>
+      <button role="tab" id="tabPhoto" aria-selected="false">📷 종이 사진에서</button>
+    </div>
+
+    <div id="drawPane">
+      <canvas class="pad" id="pad" aria-label="서명 입력 칸"></canvas>
+      <div class="opts">
+        <label class="field">펜 굵기 <span class="muted" id="penVal">3</span>
+          <input type="range" id="pen" min="1" max="12" step="0.5" value="3">
+        </label>
+        <label class="field">색
+          <input type="color" id="penColor" value="#111111">
+        </label>
+      </div>
+      <div class="row">
+        <button class="ghost" id="undo" disabled>↶ 되돌리기</button>
+        <button class="ghost" id="clear" disabled>모두 지우기</button>
+        <button id="saveDraw" disabled>투명 PNG 저장</button>
+      </div>
+    </div>
+
+    <div id="photoPane" hidden>
+      <label class="drop" tabindex="0">
+        <b>흰 종이에 쓴 서명 사진을 고르세요</b>
+        <span class="muted">밝은 곳에서 그림자 없이, 서명이 크게 나오게 찍으면 깔끔합니다</span>
+        <input type="file" accept="image/*">
+      </label>
+      <div id="photoBox" hidden>
+        <div class="checker" style="margin-top:12px"><canvas id="photoPrev" aria-label="배경을 지운 서명 미리보기"></canvas></div>
+        <div class="opts">
+          <label class="field">배경 기준 밝기 <span class="muted" id="thVal"></span>
+            <input type="range" id="th" min="40" max="250" value="190">
+          </label>
+          <label class="field">테두리 무시 <span class="muted" id="edgeVal">3%</span>
+            <input type="range" id="edge" min="0" max="25" value="3">
+          </label>
+          <label class="field">잉크 색
+            <select id="inkMode">
+              <option value="orig">사진 속 색 그대로</option>
+              <option value="#111111" selected>검정</option>
+              <option value="#1d3f9e">파랑</option>
+              <option value="custom">직접 고르기</option>
+            </select>
+          </label>
+          <label class="field" id="customBox" hidden>직접 고른 색
+            <input type="color" id="inkColor" value="#1d3f9e">
+          </label>
+        </div>
+        <label class="check"><input type="checkbox" id="flat" checked> 그림자·조명 차이 보정</label>
+        <div class="row" style="margin-top:12px">
+          <button id="savePhoto">투명 PNG 저장</button>
+        </div>
+      </div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <h3>직접 쓰기</h3>
+    <ol>
+      <li>흰 칸에 손가락이나 마우스로 서명합니다. 회색 줄은 기준선일 뿐 저장되지 않습니다.</li>
+      <li>펜 굵기와 색을 고릅니다. 색은 이미 쓴 획까지 한꺼번에 바뀝니다.</li>
+      <li><b>투명 PNG 저장</b>을 누르면 서명 둘레만 남기고 잘라 3배 해상도로 저장합니다.</li>
+    </ol>
+    <h3>종이 사진에서</h3>
+    <ol>
+      <li>흰 종이에 검은 펜으로 서명하고, 서명이 화면을 가득 채우도록 찍어 올립니다.</li>
+      <li>미리보기의 격자무늬가 투명한 부분입니다. 종이 얼룩이 남으면 <b>배경 기준 밝기</b>를 낮추고, 획이 끊기면 높이세요.</li>
+      <li>사진 가장자리에 책상이나 그림자가 걸리면 <b>테두리 무시</b>를 올려 잘라 냅니다.</li>
+    </ol>
+
+    <h2>배경은 어떻게 투명해지나요</h2>
+    <p>화소마다 밝기를 계산해 <b>기준 밝기보다 밝으면 종이(투명)</b>, 충분히 어두우면 잉크(불투명)로 봅니다. 기준 근처의 화소는 밝기에 따라 반투명하게 남겨 획 가장자리가 톱니처럼 깨지지 않게 합니다.</p>
+    <p>휴대폰 사진은 조명 때문에 종이 한쪽이 어둡게 찍히기 쉽습니다. <b>그림자·조명 차이 보정</b>을 켜 두면 화소의 밝기를 주변 넓은 영역의 평균 밝기로 나눠, 그늘진 종이도 밝은 종이와 같은 기준으로 판단합니다. 처음 값은 사진의 밝기 분포를 두 무리로 나누는 오츠(Otsu) 방법으로 정합니다.</p>
+    <p>마지막으로 불투명한 화소가 있는 가장 작은 사각형을 찾아 둘레 여백을 잘라 냅니다. 직접 쓴 서명은 입력한 점들의 중간점을 잇는 곡선으로 그려 떨림을 줄입니다.</p>
+
+    <h2>전자 문서에 쓸 때 알아 둘 점</h2>
+    <p>이 도구는 서명 <b>그림</b>을 만들 뿐입니다. 서명 이미지를 붙인 문서가 어떤 효력을 갖는지는 계약 종류, 상대방과의 합의, 본인 확인 방법 같은 상황에 따라 다릅니다. 중요한 계약이라면 상대방이 요구하는 서명 방식을 먼저 확인하세요.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>저장한 PNG를 한글·워드·PDF에 넣으면 배경이 하얗게 나와요.</summary>
+      <p>파일 자체는 투명합니다. 문서 프로그램에서 그림 배치를 "글 앞으로"(워드는 "텍스트 앞")로 바꾸면 글자 위에 겹쳐 보입니다. JPG로 바꿔 저장하면 투명도가 사라지니 PNG 그대로 쓰세요.</p></details>
+    <details><summary>얇은 볼펜 서명이 흐리게 나와요.</summary>
+      <p>배경 기준 밝기를 조금 올리면 흐린 획까지 남습니다. 처음부터 굵은 사인펜으로 쓰면 가장 깔끔합니다. 잉크 색을 "검정"으로 두면 흐린 부분도 진하게 칠해집니다.</p></details>
+    <details><summary>펜 압력(필압)에 따라 굵기가 바뀌나요?</summary>
+      <p>기기마다 필압 지원이 달라, 이 도구는 고른 굵기 그대로 그립니다. 대신 획을 곡선으로 이어 부드럽게 보이게 합니다.</p></details>
+    <details><summary>서명 이미지가 어딘가에 저장되나요?</summary>
+      <p>아니요. 그린 획과 사진은 이 브라우저 안에서만 처리하며, 페이지를 닫으면 사라집니다. 서명은 민감한 정보이므로 저장한 파일도 필요한 곳에만 보내세요.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

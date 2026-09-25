@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 14px 0 12px; }
+  .opts select { width: 100%; }
+  #prev { display: block; max-width: 100%; max-height: 65vh; margin: 0 auto; touch-action: none; cursor: grab; border-radius: 8px; }
+  .tiles { display: grid; gap: 4px; margin: 12px 0; }
+  .tiles button { padding: 0; background: none; border-radius: 6px; position: relative; overflow: hidden; display: block; }
+  .tiles img { display: block; width: 100%; height: auto; }
+  .tiles b { position: absolute; left: 4px; top: 4px; background: rgba(0,0,0,.65); color: #fff; font-size: 12px; padding: 1px 6px; border-radius: 999px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>인스타 그리드 분할 — 사진 한 장을 3×3 조각으로</h1>
+  <p class="lede">큰 사진 한 장을 <b>3×1, 3×2, 3×3</b>(또는 2×2) 조각으로 잘라, 인스타그램 프로필에서 한 장처럼 이어 보이게 합니다. 올리는 순서대로 번호를 붙여 드립니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>나눌 사진을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">JPG · PNG · WEBP</span>
+      <input type="file" accept="image/*">
+    </label>
+    <div class="opts">
+      <label class="field">나누기
+        <select id="grid">
+          <option value="3x1">3×1 (가로 한 줄, 3장)</option>
+          <option value="3x2">3×2 (6장)</option>
+          <option value="3x3" selected>3×3 (9장)</option>
+          <option value="2x2">2×2 (4장)</option>
+        </select>
+      </label>
+      <label class="field">조각 비율
+        <select id="ratio">
+          <option value="0.75">세로 3:4</option>
+          <option value="0.8">세로 4:5</option>
+          <option value="1" selected>정사각 1:1</option>
+          <option value="0">자르지 않고 그대로 나누기</option>
+        </select>
+      </label>
+    </div>
+    <div id="work" hidden>
+      <p class="muted" style="margin:0 0 8px">밝은 부분이 남는 영역입니다. 사진을 끌어 남길 위치를 옮기세요. 숫자는 올리는 순서입니다.</p>
+      <canvas id="prev" aria-label="자를 영역 미리보기"></canvas>
+      <div class="row" style="margin-top:12px">
+        <button id="zip">ZIP으로 모두 저장</button>
+        <span class="muted" id="info"></span>
+      </div>
+      <p class="muted" style="margin:8px 0 0">휴대폰에서는 아래 조각을 하나씩 눌러 저장할 수도 있습니다.</p>
+      <div class="tiles" id="tiles"></div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>사진을 고르고 <b>나누기</b>(3×1·3×2·3×3·2×2)와 <b>조각 비율</b>을 정합니다.</li>
+      <li>미리보기에서 사진을 끌어 남길 부분을 옮깁니다. 비율이 맞지 않는 부분은 잘려 나갑니다.</li>
+      <li><b>ZIP으로 모두 저장</b>하거나, 아래 조각을 하나씩 눌러 저장합니다.</li>
+      <li>파일 이름 앞 번호 <b>01부터 차례로</b> 인스타그램에 올립니다.</li>
+    </ol>
+
+    <h2>왜 마지막 조각부터 올리나요</h2>
+    <p>인스타그램 프로필은 <b>가장 최근 게시물이 왼쪽 위</b>에 오고, 새 글을 올릴 때마다 기존 글이 오른쪽·아래로 한 칸씩 밀립니다. 그래서 그림의 왼쪽 위 조각은 가장 나중에 올려야 하고, 가장 먼저 올릴 조각은 <b>오른쪽 아래</b> 조각입니다. 이 도구는 이 순서대로 파일 이름에 01, 02, … 번호를 붙입니다. 예를 들어 3×3이면 <code>01_3행3열.jpg</code>가 가장 먼저, <code>09_1행1열.jpg</code>가 가장 나중입니다.</p>
+    <p>프로필 격자는 한 줄에 3칸이라, 3의 배수 장수로 올려야 모양이 이어집니다. 조각을 다 올리기 전에 다른 글을 올리면 줄이 어긋나니 한 번에 올리세요. 2×2는 한 줄 3칸 격자와 맞지 않으므로 여러 장 넘겨 보기(캐러셀)나 다른 곳에 쓸 때 고르세요.</p>
+
+    <h2>조각 비율은 무엇으로 고르나요</h2>
+    <p>조각이 프로필 격자 칸과 <b>같은 비율</b>이어야 경계가 딱 맞게 이어집니다. 칸 비율과 다르면 앱이 조각의 가장자리를 잘라 보여 주기 때문에 그림 이음새가 어긋납니다.</p>
+    <p>인스타그램은 2025년 무렵부터 프로필 격자를 정사각형 대신 세로로 긴 칸으로 보여 준다는 안내가 많지만, 앱 버전과 계정에 따라 다를 수 있습니다. <b>지금 내 프로필 칸 모양을 먼저 확인하고</b> 1:1·4:5·3:4 중 같은 비율을 고르세요. 조각은 가로 최대 1,080화소, JPG 품질 92%로 저장하며 원본보다 크게 늘리지 않습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>올렸더니 이음새가 조금 어긋나요.</summary>
+      <p>조각 비율과 프로필 칸 비율이 다를 때 생깁니다. 조각 비율을 바꿔 다시 만들어 보세요. 올릴 때 앱의 자르기 화면에서 확대·이동하지 말고 원본 비율 그대로 올려야 합니다.</p></details>
+    <details><summary>ZIP 파일이 휴대폰에서 안 열려요.</summary>
+      <p>아이폰은 '파일' 앱에서 ZIP을 누르면 풀립니다. 안드로이드는 '내 파일' 앱에서 압축을 풀 수 있습니다. 번거로우면 조각을 하나씩 눌러 저장하세요.</p></details>
+    <details><summary>사진 화질이 떨어지나요?</summary>
+      <p>원본 해상도 안에서 자르고, 조각 가로가 1,080화소를 넘으면 그 크기로 줄입니다. 인스타그램도 올릴 때 다시 압축하므로 그보다 크게 만들어도 이득이 거의 없습니다.</p></details>
+    <details><summary>사진이 옆으로 누워 나와요.</summary>
+      <p>휴대폰이 기록한 회전 정보를 읽어 바로 세운 뒤 자릅니다. 그래도 누워 나오면 사진 앱에서 한 번 회전해 저장한 뒤 다시 넣어 주세요.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

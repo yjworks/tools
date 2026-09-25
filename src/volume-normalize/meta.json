@@ -1,0 +1,11 @@
+{
+  "name": "볼륨 평준화",
+  "title": "오디오 볼륨 평준화(노멀라이즈) — 피크·RMS·LUFS 맞추기",
+  "desc": "소리 파일의 피크·RMS·라우드니스(LUFS)를 재고 목표값에 맞춰 키우거나 줄입니다. 리미터로 찌그러짐을 막고 WAV로 저장하며 업로드는 없습니다.",
+  "keywords": ["볼륨 평준화", "노멀라이즈", "음량 맞추기", "오디오 볼륨 키우기", "LUFS 측정", "소리 크게"],
+  "group": "오디오·영상",
+  "order": 360,
+  "iconText": "dB",
+  "color": "#9a3412",
+  "category": "MultimediaApplication"
+}

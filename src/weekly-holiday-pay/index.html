@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 12px; }
+  .grid input { width: 100%; }
+  .res { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14.5px; }
+  .res td { border-top: 1px solid var(--line); padding: 7px 4px; vertical-align: top; }
+  .res td:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .big { font-size: 26px; font-weight: 800; margin: 14px 0 0; }
+  .note { font-size: 13px; color: var(--sub); margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>주휴수당 계산기</h1>
+  <p class="lede">시급과 1주 소정근로시간을 넣으면 <b>주휴수당</b>과 한 달 기준 금액을 계산합니다. 2026년 최저시급(10,320원)에 못 미치면 알려 드립니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="grid">
+      <label class="field">시급 (원)<input type="text" id="hourly" inputmode="numeric" value="10,320"></label>
+      <label class="field">1주 소정근로시간<input type="number" id="hours" inputmode="decimal" min="0" max="68" step="0.5" value="20"></label>
+    </div>
+    <p class="note">소정근로시간은 계약서에 정한 근무시간입니다. 연장근로(초과근무)는 넣지 않습니다. 주마다 다르면 4주 평균을 넣으세요.</p>
+    <div id="out"></div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <p>시급과 1주 소정근로시간만 넣으면 됩니다. 예를 들어 하루 4시간씩 주 5일이면 20시간, 하루 6시간씩 주 3일이면 18시간입니다. 시급 칸에는 2026년 최저시급이 미리 들어 있으니 실제 시급으로 바꿔 주세요.</p>
+
+    <h2>주휴수당 계산 기준</h2>
+    <ul>
+      <li><b>받는 조건:</b> 4주 평균 1주 소정근로시간이 <b>15시간 이상</b>이고, 그 주에 정해진 근무일을 모두 출근(개근)해야 합니다(근로기준법 제55조, 시행령 제30조, 제18조제3항).</li>
+      <li><b>금액:</b> <code>(1주 소정근로시간 ÷ 40) × 8시간 × 시급</code>. 주 40시간 이상 일해도 주휴는 8시간분이 상한입니다.</li>
+      <li><b>한 달 환산:</b> 1년 365일 ÷ 7일 ÷ 12개월 = <b>약 4.345주</b>가 한 달 평균 주 수입니다. 주 40시간 근무자의 월 소정근로시간 209시간도 (40 + 8) × 4.345 ≈ 208.6을 반올림한 값입니다. 실제 월급은 그달의 주 수(4주 또는 5주)에 따라 조금씩 다릅니다.</li>
+    </ul>
+    <table>
+      <tr><th>구분</th><th>2026년 값</th></tr>
+      <tr><td>최저임금 시간급</td><td>10,320원</td></tr>
+      <tr><td>월 환산액 (주 40시간, 209시간)</td><td>2,156,880원</td></tr>
+      <tr><td>적용 기간</td><td>2026. 1. 1. ~ 2026. 12. 31.</td></tr>
+    </table>
+    <p class="muted">2026년 기준, 출처: 고용노동부 「2026년 적용 최저임금 시간급 10,320원」 고시(2025. 8. 5. 확정, moel.go.kr). 확인일 2026년 9월 25일.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>하루 결근하면 그 주 주휴수당은 없나요?</summary>
+      <p>주휴는 그 주의 소정근로일을 개근한 근로자에게 주는 유급휴일이라, 정해진 근무일에 결근한 주에는 주휴수당이 생기지 않습니다. 지각·조퇴는 결근이 아니므로 개근 여부에 영향을 주지 않습니다.</p></details>
+    <details><summary>최저시급에 주휴수당을 합치면 시급이 얼마인가요?</summary>
+      <p>주 40시간 기준으로 주휴 8시간이 더해지므로 실제로 받는 돈을 일한 시간으로 나누면 10,320 × 48 ÷ 40 = 12,384원입니다. 그래서 채용 공고에서 "주휴 포함 시급 12,384원"처럼 쓰기도 합니다.</p></details>
+    <details><summary>편의점·식당 알바도 주휴수당을 받나요?</summary>
+      <p>근로기준법의 주휴 규정은 상시 5명 미만 사업장에도 적용됩니다. 업종이나 아르바이트 여부와 관계없이 주 15시간 이상·개근 조건을 채우면 받을 수 있습니다.</p></details>
+    <details><summary>월급을 받는데 주휴수당이 따로 있나요?</summary>
+      <p>월급제는 보통 주휴수당이 월급 안에 이미 들어 있습니다. 주 40시간 근무자의 월 209시간은 일한 시간(40시간)과 주휴(8시간)를 합친 48시간에 4.345주를 곱한 값입니다. 그래서 최저임금 위반 여부를 볼 때도 월급을 209시간으로 나눠 최저시급과 비교합니다. 이 도구는 주로 시급제 근로자가 주휴수당을 따로 확인할 때 씁니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

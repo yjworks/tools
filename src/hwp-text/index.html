@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  #out[hidden] { display: none; }
+  #text { min-height: 320px; font-size: 15px; white-space: pre-wrap; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; padding: 0; list-style: none; }
+  .facts li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--bg); color: var(--sub); border: 1px solid var(--line); }
+  .check { display: flex; gap: 8px; align-items: center; font-size: 14.5px; }
+  .notice { font-size: 12.5px; color: var(--sub); margin: 14px 0 0; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>HWP·HWPX 텍스트 추출</h1>
+  <p class="lede">한글 프로그램이 없어도 .hwp·.hwpx 문서의 글자를 꺼내 봅니다. 복사하거나 .txt 파일로 저장할 수 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>한글 문서를 여기에 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">.hwp (한글 2002 이후) · .hwpx</span>
+      <input type="file" accept=".hwp,.hwpx,application/x-hwp,application/haansofthwp,application/vnd.hancom.hwpx">
+    </label>
+    <p class="status" id="status"></p>
+
+    <div id="out" hidden>
+      <ul class="facts" id="facts"></ul>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="collapse" checked>빈 줄 여러 개는 하나로</label>
+      </div>
+      <textarea id="text" readonly spellcheck="false" aria-label="추출한 글"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button id="copy">모두 복사</button>
+        <button id="save" class="ghost">.txt 내려받기</button>
+      </div>
+    </div>
+    <p class="notice" id="notice">본 제품은 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다.</p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>.hwp 또는 .hwpx 파일을 위 칸에 놓습니다. 형식은 파일 앞부분을 보고 자동으로 알아냅니다.</li>
+      <li>꺼낸 글이 아래 칸에 나옵니다. 문단 하나가 한 줄이고, 구역이 바뀌는 곳에는 빈 줄이 들어갑니다.</li>
+      <li><b>모두 복사</b>로 다른 곳에 붙여 넣거나, <b>.txt 내려받기</b>로 UTF-8 텍스트 파일을 저장합니다.</li>
+    </ol>
+
+    <h2>한글 문서에서 글자를 꺼내는 원리</h2>
+    <h3>.hwp (한글 문서 5.0 형식)</h3>
+    <p>한글 2002 이후의 .hwp 파일은 윈도우 오피스의 옛 .doc처럼 여러 개의 작은 파일(스트림)을 담은 <b>복합 파일(OLE)</b>입니다. 이 도구는 다음 순서로 읽습니다.</p>
+    <ol>
+      <li><code>FileHeader</code> 스트림에서 <code>HWP Document File</code> 서명과 속성 값을 확인합니다. 속성의 비트로 본문이 압축되었는지, 암호가 걸렸는지, 배포용 문서인지를 알 수 있습니다.</li>
+      <li>본문은 <code>BodyText/Section0</code>, <code>Section1</code> … 구역마다 따로 들어 있습니다. 압축된 문서면 deflate 압축을 풉니다.</li>
+      <li>풀린 내용은 4바이트 머리(태그 번호 10비트·단계 10비트·크기 12비트)가 붙은 <b>레코드</b>들의 연속입니다. 그중 <b>문단 글자(PARA_TEXT, 태그 67)</b> 레코드만 골라 UTF-16 글자로 읽습니다.</li>
+      <li>문단 글자 사이에는 표·그림·각주·쪽 번호 위치를 나타내는 <b>제어 문자</b>(코드 0~31)가 섞여 있습니다. 탭·표·각주 같은 컨트롤은 글자 8칸을, 줄 바꿈·문단 끝·하이픈은 1칸을 차지하므로, 공개 문서의 표대로 칸 수를 세어 건너뛰고 탭·줄 바꿈·빈칸만 글자로 남깁니다.</li>
+    </ol>
+    <p>표 안의 글자, 글상자, 머리말·꼬리말, 각주도 모두 같은 문단 글자 레코드로 들어 있어서 함께 나옵니다. 표는 칸마다 한 줄씩 나옵니다.</p>
+    <h3>.hwpx (개방형 문서 형식 OWPML)</h3>
+    <p>.hwpx는 zip으로 묶인 XML 문서입니다. 압축을 풀어 <code>Contents/section0.xml</code>부터 번호 순서대로 열고, <code>&lt;hp:p&gt;</code>(문단) 안의 <code>&lt;hp:t&gt;</code>(글자) 요소를 순서대로 모읍니다. 글자 안의 <code>&lt;hp:tab/&gt;</code>은 탭으로, <code>&lt;hp:lineBreak/&gt;</code>는 줄 바꿈으로 바꿉니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>암호가 걸린 문서나 배포용 문서도 되나요?</summary>
+      <p>안 됩니다. 암호 문서는 본문이 암호로 잠겨 있어 암호 없이는 읽을 수 없고, 배포용 문서는 복사·인쇄를 막기 위해 본문을 따로 암호화해 두어 이 도구가 풀지 않습니다. 넣으면 "암호가 걸린 문서는 열 수 없습니다" 또는 "배포용 문서는 지원하지 않습니다"라고 알려 드립니다. 암호를 아는 문서라면 한글이나 한컴오피스 뷰어에서 암호를 풀고 저장한 뒤 넣어 주세요.</p></details>
+    <details><summary>표·그림·글자 모양도 가져오나요?</summary>
+      <p>글자만 가져옵니다. 표는 칸의 글자가 한 줄에 하나씩 나오고, 표 모양·글꼴·색·그림·수식은 빠집니다. 수식은 글자가 아닌 수식 스크립트로 저장되어 있어 나오지 않습니다. 문서 모양 그대로 보려면 한컴오피스 뷰어나 한글 문서를 PDF로 바꿔 주는 도구를 쓰세요.</p></details>
+    <details><summary>옛날 한글 97 파일(.hwp)은 왜 안 되나요?</summary>
+      <p>한글 97 이전(3.0 형식) 파일은 같은 .hwp 확장자를 쓰지만 속 구조가 완전히 다릅니다. 이 도구는 한글 2002 이후의 5.0 형식과 .hwpx만 읽습니다. 3.0 형식이면 그렇다고 알려 드립니다.</p></details>
+    <details><summary>문서가 서버로 올라가나요?</summary>
+      <p>올라가지 않습니다. 복합 파일을 여는 코드(cfb)와 압축을 푸는 코드(fflate)를 페이지에 내려받아 이 브라우저 안에서만 실행합니다. 공문서나 개인정보가 담긴 문서도 기기 밖으로 나가지 않습니다.</p></details>
+    <details><summary>꺼낸 글의 순서가 화면과 조금 달라요.</summary>
+      <p>글자는 문서에 저장된 순서대로 나옵니다. 머리말·꼬리말과 각주는 그 컨트롤이 들어 있는 문단 바로 뒤에, 글상자 글자는 글상자가 붙어 있는 문단 뒤에 나오므로 인쇄된 모양과 순서가 다를 수 있습니다.</p></details>
+
+    <h2>참고 문서</h2>
+    <p>본 제품은 한글과컴퓨터의 한/글 문서 파일(.hwp) 공개 문서를 참고하여 개발하였습니다. 참고한 문서는 한글과컴퓨터가 공개한 「한글 문서 파일 구조 5.0」(revision 1.3)과 개방형 워드프로세서 마크업 언어(OWPML) 문서 구조입니다. 한컴은 이 공개 문서를 참고해 개발한 결과물의 정확성을 보증하지 않으며, 이 도구는 한글과컴퓨터와 관계없는 독립 도구입니다. 한글, 한컴오피스는 한글과컴퓨터의 상표입니다.</p>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  [hidden] { display: none !important; }
+  progress { width: 100%; height: 12px; accent-color: var(--accent); margin: 10px 0 0; }
+  .ab { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 16px 0 12px; }
+  .ab > div { background: var(--bg); border-radius: 10px; padding: 10px 12px; }
+  .ab b { display: block; font-size: 14.5px; margin-bottom: 6px; }
+  .ab audio { width: 100%; display: block; }
+  .mix { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 12px; }
+  .mix input[type=range] { flex: 1 1 200px; min-width: 0; accent-color: var(--accent); }
+  .mix output { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 4.5em; }
+  .stats { font-size: 14px; color: var(--sub); margin: 0 0 12px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>음성 잡음 제거</h1>
+  <p class="lede">녹음 파일에 섞인 에어컨·선풍기 소리, 웅웅거리는 배경 잡음, 키보드 소리를 줄여 목소리를 또렷하게 만듭니다. 처리 전후를 바로 비교해 듣고, 얼마나 세게 적용할지 조절할 수 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <p class="status bad" id="unsupported" hidden></p>
+    <label class="drop" tabindex="0">
+      <b>녹음 파일을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">MP3 · M4A · WAV · OGG · WEBM 등 브라우저가 재생할 수 있는 파일</span>
+      <input type="file" accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.oga,.opus,.flac,.webm">
+    </label>
+    <p class="status" id="status"></p>
+    <progress id="prog" max="1" value="0" hidden></progress>
+
+    <div id="result" hidden>
+      <div class="ab">
+        <div><b>처리 전 (48 kHz 모노로 바꾼 원본)</b><audio id="before" controls preload="auto"></audio></div>
+        <div><b>처리 후</b><audio id="after" controls preload="auto"></audio></div>
+      </div>
+      <div class="mix">
+        <label for="amount" class="muted">적용 강도</label>
+        <input type="range" id="amount" min="0" max="100" step="5" value="100">
+        <output id="amountOut">100%</output>
+      </div>
+      <p class="stats" id="stats"></p>
+      <div class="row"><button id="save">WAV로 저장</button><span class="muted" id="saveInfo"></span></div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>녹음 파일을 넣으면 곧바로 잡음 제거를 시작합니다. 처음 한 번은 잡음 제거 엔진(몇 MB)을 내려받느라 조금 더 걸립니다.</li>
+      <li>끝나면 <b>처리 전</b>과 <b>처리 후</b>를 번갈아 들어 보세요.</li>
+      <li>목소리가 먹먹하거나 로봇처럼 들리면 <b>적용 강도</b>를 60~80%로 낮춥니다. 원음이 그만큼 섞여 자연스러워집니다.</li>
+      <li><b>WAV로 저장</b>을 누르면 지금 들리는 "처리 후" 소리가 파일로 저장됩니다.</li>
+    </ol>
+
+    <h2>잡음을 어떻게 구별하나요</h2>
+    <p>이 도구는 Xiph.org의 <b>RNNoise</b>를 씁니다. RNNoise는 사람 목소리와 잡음이 섞인 녹음을 많이 듣고 배운 작은 신경망으로, 소리를 0.01초(480샘플) 조각으로 잘라 주파수 대역마다 "여기는 목소리가 얼마나 있나"를 추정한 뒤 잡음이 많은 대역을 줄입니다. 규칙이 정해진 필터가 아니라서 선풍기처럼 일정한 소리뿐 아니라 키보드 소리처럼 들쭉날쭉한 잡음도 어느 정도 줄입니다.</p>
+    <h3>처리 순서</h3>
+    <ol>
+      <li>브라우저가 파일을 풀어 파형으로 만듭니다.</li>
+      <li>RNNoise가 배운 조건에 맞춰 <b>48 kHz 모노</b>로 바꿉니다(스테레오는 좌우를 평균). 결과 파일도 48 kHz 모노 WAV입니다.</li>
+      <li>480샘플씩 RNNoise에 넣습니다. 이 엔진은 16비트 정수 크기의 값을 받도록 만들어져 있어, 넣기 전에 32768을 곱하고 나온 뒤 다시 나눕니다.</li>
+      <li>RNNoise는 결과를 20ms(960샘플) 늦게 내보내므로 그만큼 앞으로 당겨 원본과 시점을 맞춥니다. 그래야 적용 강도를 조절해 원음과 섞어도 소리가 겹쳐 울리지 않습니다.</li>
+    </ol>
+    <p>잡음 제거 엔진은 WebAssembly로 이 페이지 안에서 돌아가며, 녹음은 어디로도 전송되지 않습니다. 엔진은 <code>@shiguredo/rnnoise-wasm</code>(Apache-2.0)을 씁니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>음악이나 노래에도 쓸 수 있나요?</summary>
+      <p>권하지 않습니다. RNNoise는 말소리를 남기고 나머지를 줄이도록 배웠기 때문에, 악기 소리나 배경 음악은 잡음으로 보고 크게 깎습니다. 노래 녹음은 적용 강도를 낮춰 조심스럽게 쓰세요.</p></details>
+    <details><summary>왜 결과가 모노인가요?</summary>
+      <p>RNNoise가 한 채널(모노) 48 kHz 소리를 처리하도록 만들어졌기 때문입니다. 말소리 녹음은 대부분 모노로 충분하고, 모노로 바꾸면 파일도 작아집니다.</p></details>
+    <details><summary>목소리까지 작아지거나 끊겨요.</summary>
+      <p>잡음이 목소리보다 크거나 목소리와 주파수가 겹치면 목소리 일부도 함께 줄어듭니다. 적용 강도를 낮추고, 다음 녹음부터는 마이크를 입에 가깝게 두는 것이 가장 효과가 큽니다.</p></details>
+    <details><summary>긴 파일도 되나요?</summary>
+      <p>됩니다. 다만 파일 전체를 메모리에 풀어 처리하므로 한 시간이 넘는 녹음은 기기에 따라 느리거나 멈출 수 있습니다. 처리하는 동안 진행률이 표시됩니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .stage { position: relative; margin: 12px 0; background: var(--bg); border-radius: 10px; overflow: hidden; }
+  .stage canvas { display: block; width: 100%; height: auto; touch-action: none; cursor: crosshair; }
+  #out { display: block; max-width: 100%; max-height: 70vh; margin: 12px auto; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0 0 12px; }
+  .opts select, .opts input[type=range] { width: 100%; }
+  #pagesBox h3 { font-size: 16px; margin: 18px 0 4px; }
+  ul.files .grow { flex: 1; min-width: 0; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>문서 스캐너 — 사진을 반듯한 스캔본으로</h1>
+  <p class="lede">비스듬히 찍은 서류·영수증 사진의 네 모서리를 맞추면 <b>정면에서 스캔한 것처럼</b> 반듯하게 펴 줍니다. 흑백 스캔본, 여러 장 PDF도 만들 수 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>문서 사진을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">JPG · PNG · WEBP. 휴대폰에서는 바로 촬영할 수도 있습니다</span>
+      <input type="file" accept="image/*">
+    </label>
+
+    <div id="editor" hidden>
+      <p class="muted" style="margin:12px 0 0">동그라미 네 개를 문서의 네 꼭짓점으로 끌어 맞추세요. 끄는 동안 확대경이 나타납니다.</p>
+      <div class="stage"><canvas id="view" aria-label="모서리 맞추기 화면"></canvas></div>
+      <div class="row">
+        <button class="small ghost" id="auto">모서리 자동 찾기</button>
+        <button class="small ghost" id="reset">기본 사각형</button>
+        <button class="small ghost" id="rotate" title="결과를 시계 방향으로 90° 돌립니다">90° 돌리기</button>
+      </div>
+      <div class="opts">
+        <label class="field">결과 색
+          <select id="mode">
+            <option value="color">컬러</option>
+            <option value="gray">회색</option>
+            <option value="bw" selected>흑백</option>
+          </select>
+        </label>
+        <label class="field">비율
+          <select id="aspect">
+            <option value="0">자동</option>
+            <option value="0.7071">A4 세로</option>
+            <option value="1.4142">A4 가로</option>
+          </select>
+        </label>
+        <label class="field" id="sensBox">흑백 민감도 <span class="muted" id="sensVal">12</span>
+          <input type="range" id="sens" min="3" max="30" value="12">
+        </label>
+      </div>
+      <div class="row"><button id="apply">반듯하게 펴기</button></div>
+    </div>
+
+    <div id="result" hidden>
+      <canvas id="out" aria-label="보정 결과"></canvas>
+      <div class="row">
+        <button id="saveJpg">JPG 저장</button>
+        <button id="savePng" class="ghost">PNG 저장</button>
+        <button id="addPage" class="ghost">PDF 페이지로 추가</button>
+      </div>
+    </div>
+
+    <div id="pagesBox" hidden>
+      <h3>PDF에 넣을 페이지</h3>
+      <ul class="files" id="pages"></ul>
+      <div class="row" style="margin-top:10px">
+        <label class="field">PDF 페이지 크기
+          <select id="pdfSize">
+            <option value="a4">A4에 맞춤</option>
+            <option value="image">스캔 크기 그대로</option>
+          </select>
+        </label>
+        <button id="savePdf">여러 장 PDF로 저장</button>
+      </div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>문서를 찍은 사진을 고릅니다. 어두운 책상 위에 흰 종이를 놓고 찍으면 모서리를 자동으로 잘 찾습니다.</li>
+      <li>네 동그라미를 문서 꼭짓점에 맞춥니다. 자동으로 찾은 위치가 틀리면 끌어서 고치고, 엉뚱하면 <b>기본 사각형</b>에서 다시 시작하세요.</li>
+      <li><b>결과 색</b>을 고르고 <b>반듯하게 펴기</b>를 누릅니다. 결과가 옆으로 누웠으면 <b>90° 돌리기</b> 후 다시 펴세요.</li>
+      <li>한 장이면 JPG·PNG로 저장하고, 여러 장이면 <b>PDF 페이지로 추가</b>를 반복한 뒤 <b>여러 장 PDF로 저장</b>을 누릅니다.</li>
+    </ol>
+
+    <h2>비스듬한 사진이 어떻게 반듯해지나요</h2>
+    <p>비스듬히 찍은 직사각형 종이는 사진에서 사다리꼴처럼 보입니다. 사다리꼴의 네 꼭짓점과 반듯한 직사각형의 네 꼭짓점을 짝지으면, 두 평면 사이의 관계를 나타내는 <b>호모그래피(원근 변환 행렬)</b>를 구할 수 있습니다. 행렬의 모르는 값 8개를 네 점 × (가로, 세로) = 식 8개로 풀어 냅니다.</p>
+    <p>그다음 결과 이미지의 화소 하나하나에 대해 "원래 사진의 어디였는지"를 거꾸로 계산해 색을 읽어 옵니다(역방향 매핑). 계산된 위치는 보통 화소 사이에 떨어지므로, 둘레 네 화소를 거리에 따라 섞는 <b>쌍선형 보간</b>으로 계단 현상 없이 부드럽게 만듭니다.</p>
+    <p>결과 크기는 네 변 길이로 정하며, 긴 변이 3,000화소를 넘지 않게 줄입니다. 원래 사진보다 해상도가 높아지지는 않으므로, 글자가 작다면 문서에 가까이 다가가 찍는 편이 좋습니다.</p>
+
+    <h2>흑백 모드는 무엇이 다른가요</h2>
+    <p>휴대폰으로 찍은 종이는 한쪽이 그늘지기 쉽습니다. 사진 전체에 기준값 하나를 쓰면 그늘진 부분이 통째로 까맣게 됩니다. 이 도구는 화소마다 <b>주변 영역의 평균 밝기</b>와 비교해, 주변보다 일정 비율(민감도, %) 이상 어두운 곳만 글자로 봅니다(적응형 임계값). 주변 평균은 <b>적분 영상</b>으로 한 번에 구해 큰 사진도 빠르게 처리합니다.</p>
+    <p>민감도를 높이면 흐린 연필 글씨까지 남고, 낮추면 종이 결·얼룩이 줄어듭니다. 도장·사진처럼 색이 중요한 부분이 있으면 컬러나 회색을 고르세요.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>모서리 자동 찾기가 틀려요.</summary>
+      <p>자동 찾기는 사진에서 가장 큰 밝은 덩어리를 종이로 보고 꼭짓점을 고릅니다. 흰 책상 위의 흰 종이, 손가락이 걸친 종이, 모서리가 잘린 사진은 틀리기 쉽습니다. 이럴 때는 동그라미를 직접 끌어 맞추면 됩니다.</p></details>
+    <details><summary>스캔 앱처럼 글자를 인식(OCR)하나요?</summary>
+      <p>하지 않습니다. 모양을 반듯하게 펴고 흑백으로 정리하는 것까지만 합니다. 결과는 사진(JPG·PNG)이나 이미지로 된 PDF입니다.</p></details>
+    <details><summary>PDF 용량이 너무 커요.</summary>
+      <p>컬러·회색 페이지는 JPG(품질 90%), 흑백 페이지는 PNG로 넣습니다. 흑백 PNG는 보통 컬러보다 훨씬 작으니, 글자만 있는 서류는 흑백을 고르세요.</p></details>
+    <details><summary>신분증·계약서를 넣어도 되나요?</summary>
+      <p>사진은 이 브라우저 안에서만 계산하고 어디에도 보내지 않습니다. 다만 저장한 파일을 누구에게 보낼지는 따로 신경 써 주세요.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

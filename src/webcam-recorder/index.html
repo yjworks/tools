@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  [hidden] { display: none !important; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0 0 14px; }
+  .opts select { width: 100%; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 14px; }
+  .check { display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; cursor: pointer; }
+  .check input { width: 18px; height: 18px; }
+  .stage { position: relative; background: #000; border-radius: 10px; overflow: hidden; margin: 0 0 12px; }
+  .stage video { display: block; width: 100%; max-height: 62vh; object-fit: contain; }
+  .stage video.mirror { transform: scaleX(-1); }
+  .stage .badge { position: absolute; left: 10px; top: 10px; display: flex; align-items: center; gap: 7px; background: rgba(0,0,0,.6); color: #fff;
+    font-weight: 700; font-variant-numeric: tabular-nums; padding: 4px 10px; border-radius: 999px; font-size: 15px; }
+  .rec-dot { width: 11px; height: 11px; border-radius: 50%; background: #ef4444; animation: blink 1s steps(2) infinite; }
+  .badge.paused .rec-dot { animation: none; background: #aaa; }
+  @keyframes blink { 50% { opacity: .2; } }
+  .stage .placeholder { color: #bbb; text-align: center; padding: 70px 16px; font-size: 14.5px; }
+  video.preview { display: block; width: 100%; max-height: 60vh; background: #000; border-radius: 10px; margin: 6px 0 12px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>웹캠 녹화</h1>
+  <p class="lede">노트북 카메라나 USB 웹캠으로 바로 영상을 찍어 파일로 저장합니다. 카메라와 해상도를 고르고, 거울처럼 보이는 화면으로 자세를 맞춘 뒤 녹화하세요.</p>
+  <p class="badge-local">🔒 업로드 없음 · 영상은 이 기기에만 저장</p>
+
+  <section class="tool" id="tool">
+    <p class="status bad" id="unsupported" hidden></p>
+    <div id="setup">
+      <div class="opts">
+        <label class="field">카메라<select id="cam"><option value="">기본 카메라</option></select></label>
+        <label class="field">해상도<select id="res"></select></label>
+        <label class="field">파일 형식<select id="fmt"></select></label>
+      </div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="micOn" checked>마이크 소리 함께</label>
+        <label class="check"><input type="checkbox" id="mirror" checked>거울 모드로 보기</label>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="placeholder" id="placeholder">카메라 켜기를 누르면 여기에 화면이 나옵니다.<br>브라우저가 카메라 권한을 물으면 허용해 주세요.</div>
+      <video id="live" class="mirror" muted playsinline autoplay hidden></video>
+      <div class="badge" id="badge" hidden><span class="rec-dot"></span><span id="timer">0:00</span></div>
+    </div>
+
+    <div class="row">
+      <button id="open">카메라 켜기</button>
+      <button id="rec" hidden>● 녹화 시작</button>
+      <button id="pause" class="ghost" hidden>일시정지</button>
+      <button id="stop" class="ghost" hidden>■ 정지</button>
+      <button id="close" class="ghost small" hidden>카메라 끄기</button>
+    </div>
+    <p class="status" id="status"></p>
+
+    <div id="result" hidden>
+      <h3 style="margin:18px 0 6px;font-size:16px">녹화한 영상</h3>
+      <video class="preview" id="preview" controls playsinline></video>
+      <div class="row"><button id="save">영상 저장</button><span class="muted" id="resultInfo"></span></div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li><b>카메라 켜기</b>를 누르고 브라우저의 카메라(·마이크) 권한 요청을 허용합니다.</li>
+      <li>카메라가 여러 대면 목록에서 고르고, 해상도를 정합니다. 바꾸면 화면이 바로 다시 켜집니다.</li>
+      <li><b>녹화 시작</b> → <b>정지</b>. 아래에 녹화한 영상이 나오면 확인하고 <b>영상 저장</b>을 누르세요.</li>
+      <li>다시 찍으려면 녹화 시작을 한 번 더 누르면 됩니다. 다 쓰셨으면 <b>카메라 끄기</b>로 카메라 불을 끄세요.</li>
+    </ol>
+
+    <h2>해상도와 거울 모드</h2>
+    <p>해상도는 카메라에 "이 크기로 달라"고 <b>희망값</b>을 보내는 방식입니다. 카메라가 그 크기를 못 내면 가장 가까운 크기로 열리고, 실제로 열린 크기는 화면 아래 안내에 표시됩니다. 예를 들어 720p까지만 되는 노트북 카메라에서 1080p를 고르면 720p로 찍힙니다.</p>
+    <p><b>거울 모드</b>는 미리보기만 좌우로 뒤집어 거울을 보듯 자연스럽게 보여 줍니다. 저장되는 영상은 뒤집지 않은 원래 방향, 즉 상대방이 보는 모습 그대로입니다. 글자가 적힌 종이를 들어 보이면 저장된 영상에서는 바르게 읽힙니다.</p>
+    <p>저장 형식은 브라우저가 녹화할 수 있다고 답한 형식 중에서 고릅니다(MP4를 지원하면 MP4, 아니면 WebM). 사파리는 MP4, 파이어폭스는 WebM으로 저장되는 식입니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>카메라가 켜지지 않아요.</summary>
+      <p>권한을 거부했다면 주소창 왼쪽의 자물쇠(사이트 정보) 아이콘에서 카메라를 <b>허용</b>으로 바꾼 뒤 새로고침하세요. 줌·팀즈 같은 다른 프로그램이 카메라를 쓰고 있으면 켜지지 않을 수 있으니 그 프로그램을 닫아 보세요.</p></details>
+    <details><summary>휴대폰에서도 되나요?</summary>
+      <p>대부분의 최신 휴대폰 브라우저에서 카메라 녹화가 됩니다. 카메라 목록에서 전면·후면을 고를 수 있고, 목록 이름은 권한을 허용한 뒤에 보입니다. 휴대폰을 옆으로 돌리면 가로 영상으로 찍힙니다.</p></details>
+    <details><summary>영상이 어디에 저장되나요? 서버로 올라가나요?</summary>
+      <p>올라가지 않습니다. 카메라 영상은 이 탭 안에서만 녹화되고, 영상 저장을 누르면 기기의 다운로드 폴더에 파일로 저장됩니다. 저장하지 않고 창을 닫으면 녹화본은 사라집니다.</p></details>
+    <details><summary>소리가 울리거나 작게 녹음돼요.</summary>
+      <p>마이크는 브라우저의 에코 제거·잡음 억제가 켜진 상태로 녹음됩니다. 스피커 소리가 다시 들어가 울리면 이어폰을 쓰세요. 더 깨끗한 음성만 따로 필요하면 이 사이트의 음성 녹음기를 쓰시면 됩니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

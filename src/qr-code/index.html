@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .tabs { display: flex; gap: 6px; margin: 0 0 14px; }
+  .tabs button { flex: 1; background: var(--accent-weak); color: var(--accent); }
+  .tabs button[aria-selected=true] { background: var(--accent); color: #fff; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0 0 12px; }
+  .opts select, .opts input { width: 100%; }
+  .opts input[type=color] { height: 42px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 3px; }
+  .opts .wide { grid-column: 1 / -1; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--sub); }
+  .check input { width: auto; }
+  #qr { display: block; width: 240px; max-width: 100%; height: auto; margin: 6px auto 10px; image-rendering: pixelated; border: 1px solid var(--line); border-radius: 8px; }
+  #video { display: block; width: 100%; max-height: 60vh; background: #000; border-radius: 10px; margin: 12px 0; object-fit: cover; }
+  .readout { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-top: 12px; }
+  .readout pre { white-space: pre-wrap; word-break: break-all; margin: 6px 0; font-size: 15px; font-family: inherit; }
+  .readout dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 6px 0; }
+  .readout dt { color: var(--sub); } .readout dd { margin: 0; word-break: break-all; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>QR 코드 만들기·읽기</h1>
+  <p class="lede">주소·글·<b>와이파이 접속 정보</b>·연락처를 QR 코드로 만들고 PNG·SVG로 저장합니다. 사진이나 카메라로 QR 코드를 읽을 수도 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tabMake" aria-selected="true">만들기</button>
+      <button role="tab" id="tabRead" aria-selected="false">읽기</button>
+    </div>
+
+    <div id="makePane">
+      <div class="opts">
+        <label class="field wide">담을 내용
+          <select id="kind">
+            <option value="text">주소(URL)·글</option>
+            <option value="wifi">와이파이 접속</option>
+            <option value="vcard">연락처</option>
+          </select>
+        </label>
+      </div>
+      <div class="opts" id="f-text">
+        <label class="field wide">주소 또는 글
+          <textarea id="text" rows="3" placeholder="https://dibrain.dev/tools/"></textarea>
+        </label>
+      </div>
+      <div class="opts" id="f-wifi" hidden>
+        <label class="field">와이파이 이름(SSID) <input type="text" id="ssid" autocomplete="off"></label>
+        <label class="field">비밀번호 <input type="text" id="wpass" autocomplete="off"></label>
+        <label class="field">보안 방식
+          <select id="wtype"><option value="WPA">WPA/WPA2/WPA3</option><option value="WEP">WEP</option><option value="nopass">비밀번호 없음</option></select>
+        </label>
+        <label class="check wide"><input type="checkbox" id="whidden"> 숨겨진 네트워크</label>
+      </div>
+      <div class="opts" id="f-vcard" hidden>
+        <label class="field">이름 <input type="text" id="vname" autocomplete="off"></label>
+        <label class="field">휴대폰 <input type="text" id="vtel" inputmode="tel" autocomplete="off"></label>
+        <label class="field">이메일 <input type="text" id="vmail" inputmode="email" autocomplete="off"></label>
+        <label class="field">회사 <input type="text" id="vorg" autocomplete="off"></label>
+        <label class="field">직함 <input type="text" id="vtitle" autocomplete="off"></label>
+        <label class="field">웹사이트 <input type="text" id="vurl" inputmode="url" autocomplete="off"></label>
+      </div>
+      <div class="opts">
+        <label class="field">오류 복원
+          <select id="ecc">
+            <option value="L">낮음 L (약 7%)</option>
+            <option value="M" selected>보통 M (약 15%)</option>
+            <option value="Q">높음 Q (약 25%)</option>
+            <option value="H">최고 H (약 30%)</option>
+          </select>
+        </label>
+        <label class="field">PNG 크기
+          <select id="px"><option value="256">약 256px</option><option value="512" selected>약 512px</option><option value="1024">약 1024px</option><option value="2048">약 2048px (인쇄용)</option></select>
+        </label>
+        <label class="field">점 색 <input type="color" id="fg" value="#000000"></label>
+      </div>
+      <canvas id="qr" aria-label="QR 코드 미리보기"></canvas>
+      <p class="muted" id="qrInfo" style="text-align:center;margin:0 0 10px"></p>
+      <div class="row">
+        <button id="savePng" disabled>PNG 저장</button>
+        <button id="saveSvg" class="ghost" disabled>SVG 저장</button>
+      </div>
+    </div>
+
+    <div id="readPane" hidden>
+      <label class="drop" tabindex="0">
+        <b>QR 코드가 찍힌 사진·캡처를 고르세요</b>
+        <span class="muted">JPG · PNG · WEBP</span>
+        <input type="file" accept="image/*">
+      </label>
+      <div class="row" style="margin-top:12px">
+        <button class="ghost" id="camBtn">📷 카메라로 읽기</button>
+        <span class="muted" id="camNote"></span>
+      </div>
+      <video id="video" playsinline muted hidden></video>
+      <div class="readout" id="readout" hidden></div>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <h3>만들기</h3>
+    <ol>
+      <li><b>담을 내용</b>에서 주소·글, 와이파이, 연락처 중 하나를 고르고 칸을 채웁니다. 입력하는 대로 QR 코드가 바뀝니다.</li>
+      <li>인쇄하거나 로고를 겹칠 예정이면 <b>오류 복원</b>을 높게, 짧은 주소를 화면에 띄울 거라면 낮게 둡니다.</li>
+      <li>웹·문서용은 <b>PNG</b>, 현수막·명함처럼 크게 인쇄할 때는 확대해도 깨지지 않는 <b>SVG</b>로 저장합니다.</li>
+    </ol>
+    <h3>읽기</h3>
+    <ol>
+      <li><b>읽기</b> 탭에서 QR 코드 사진을 고르거나 <b>카메라로 읽기</b>를 누릅니다.</li>
+      <li>주소면 링크로, 와이파이면 이름·비밀번호로 나눠 보여 줍니다. 모르는 주소는 열기 전에 한 번 확인하세요.</li>
+    </ol>
+
+    <h2>오류 복원 레벨이란</h2>
+    <p>QR 코드는 담은 내용 말고도 <b>리드-솔로몬 오류 정정 부호</b>를 함께 담습니다. 일부가 긁히거나 가려져도 남은 부분으로 원래 내용을 계산해 낼 수 있게 하는 여분의 데이터입니다. 레벨이 높을수록 여분이 많아집니다.</p>
+    <table>
+      <tr><th>레벨</th><th>복원 가능한 양(대략)</th><th>이럴 때</th></tr>
+      <tr><td>L</td><td>7%</td><td>화면에 띄우는 코드, 긴 내용을 작게</td></tr>
+      <tr><td>M</td><td>15%</td><td>대부분의 경우(기본값)</td></tr>
+      <tr><td>Q</td><td>25%</td><td>전단지·포장처럼 구겨지거나 더러워질 수 있을 때</td></tr>
+      <tr><td>H</td><td>30%</td><td>가운데에 로고를 겹칠 때, 야외 부착물</td></tr>
+    </table>
+    <p>여분이 많아지면 같은 내용이라도 칸 수가 늘어 코드가 촘촘해집니다. 작은 크기로 인쇄하면 오히려 읽기 어려워질 수 있으니, 레벨을 올릴 때는 인쇄 크기도 함께 키우세요. 둘레의 흰 여백(칸 4개 폭)은 카메라가 코드 경계를 찾는 데 필요하므로 자르지 마세요.</p>
+
+    <h2>와이파이 QR은 어떻게 동작하나요</h2>
+    <p>와이파이 QR에는 <code>WIFI:T:WPA;S:이름;P:비밀번호;;</code> 모양의 글이 들어갑니다. 최신 아이폰·안드로이드 기본 카메라는 이 형식을 알아보고 "네트워크에 연결"을 띄웁니다. 이름이나 비밀번호에 <code>; , : " \</code> 가 있으면 앞에 <code>\</code>를 붙여 구분하는데, 이 도구가 자동으로 처리합니다. 비밀번호가 그대로 들어 있으니 손님용 네트워크에 쓰는 편이 안전합니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>만든 QR 코드에 유효기간이 있나요?</summary>
+      <p>없습니다. 이 도구는 내용을 코드 안에 직접 담습니다(정적 QR). 중간 서버를 거치지 않으므로 사이트가 없어져도 코드는 계속 읽힙니다. 대신 인쇄 후에는 내용을 바꿀 수 없습니다.</p></details>
+    <details><summary>한글도 넣을 수 있나요?</summary>
+      <p>넣을 수 있습니다. 한글은 UTF-8로 담으며, 요즘 휴대폰 카메라는 대부분 제대로 읽습니다. 한글 한 글자는 3바이트라 같은 길이의 영문보다 코드가 촘촘해집니다.</p></details>
+    <details><summary>카메라로 읽기가 안 돼요.</summary>
+      <p>카메라는 https 주소에서 권한을 허용해야 쓸 수 있습니다. 권한을 거부했다면 주소창의 자물쇠 아이콘에서 다시 허용하세요. 카메라가 없거나 막혀 있으면 QR 코드를 캡처하거나 찍은 사진을 넣어 읽을 수 있습니다.</p></details>
+    <details><summary>읽은 내용이 어딘가로 전송되나요?</summary>
+      <p>아니요. 카메라 영상과 사진은 이 브라우저 안에서만 분석하고, 읽은 주소도 누르기 전에는 열지 않습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .tm-teams { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-top: 14px; }
+  .tm-team { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--bg); min-width: 0; }
+  .tm-team h3 { margin: 0; padding: 7px 12px; font-size: 15px; color: #fff; display: flex; justify-content: space-between; gap: 6px; }
+  .tm-team h3 small { font-weight: 600; opacity: .9; }
+  .tm-team ul { list-style: none; margin: 0; padding: 8px 12px 10px; }
+  .tm-team li { padding: 2px 0; overflow-wrap: anywhere; }
+  .tm-team li.lead { font-weight: 800; }
+  .tm-team li.lead::after { content: " 조장"; font-size: 11.5px; font-weight: 700; color: var(--warn); }
+  .tm-team li.bad { color: var(--bad); }
+  .tm-opts { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin: 0 0 12px; }
+  .tm-opts summary { cursor: pointer; font-weight: 700; font-size: 14.5px; }
+  .tm-opts[open] summary { margin-bottom: 8px; }
+  @media (prefers-reduced-motion: no-preference) { .tm-team { animation: tmIn .35s ease-out both; } }
+  @keyframes tmIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>조 편성 · 팀 나누기</h1>
+  <p class="lede">명단을 넣으면 인원이 고르게 무작위로 조를 짭니다. 같은 조가 되면 안 되는 사람과 조장도 정할 수 있습니다.</p>
+
+  <section class="tool" id="tool">
+    <label class="field">참가자 (한 줄에 한 명, 쉼표로 이어 적어도 됩니다)
+      <textarea id="names" rows="8">김민준
+이서연
+박도윤
+최하은
+정시우
+강지아
+조예준
+윤수아
+장하준
+임지유
+한서준
+오채원</textarea>
+    </label>
+    <div class="row" style="margin-top:12px">
+      <label class="field">나누는 방법
+        <select id="by"><option value="teams">조 개수로</option><option value="perTeam">조당 인원으로</option></select>
+      </label>
+      <label class="field"><span id="numLabel">조 개수</span>
+        <input type="number" id="num" value="3" min="1" max="500" style="width:90px">
+      </label>
+    </div>
+    <details class="tm-opts" id="opts">
+      <summary>조건 넣기 (선택)</summary>
+      <div class="row" style="align-items:stretch">
+        <label class="field" style="flex:1 1 220px;min-width:0">같은 조가 되면 안 되는 사람 (한 줄에 쉼표로 2명 이상)
+          <textarea id="avoid" rows="4" placeholder="김민준, 이서연&#10;박도윤, 최하은, 정시우"></textarea>
+        </label>
+        <label class="field" style="flex:1 1 180px;min-width:0">조장 (한 줄에 한 명, 조마다 한 명씩)
+          <textarea id="leaders" rows="4" placeholder="장하준&#10;임지유"></textarea>
+        </label>
+      </div>
+    </details>
+    <div class="row">
+      <button id="make" type="button" style="font-size:16px;padding:11px 24px">조 짜기</button>
+      <button id="copy" type="button" class="ghost" disabled>글로 복사</button>
+    </div>
+    <p class="muted" id="info"></p>
+    <p class="status" id="status"></p>
+    <div class="tm-teams" id="teams"></div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>참가자 이름을 한 줄에 한 명씩 적습니다. 출석부나 단체 대화방 명단을 그대로 붙여 넣어도 됩니다.</li>
+      <li><b>조 개수로</b> 나누면 정한 개수만큼 조가 생기고, <b>조당 인원으로</b> 나누면 그 인원을 넘지 않게 필요한 만큼 조가 생깁니다.</li>
+      <li>필요하면 <b>조건 넣기</b>를 열어 같은 조가 되면 안 되는 사람들과 조장을 적습니다.</li>
+      <li><b>조 짜기</b>를 누를 때마다 새로 섞습니다. 마음에 들면 <b>글로 복사</b>해서 공지에 붙이세요.</li>
+    </ol>
+
+    <h2>인원 균형과 조건을 지키는 방법</h2>
+    <p>먼저 조마다 몇 명이 들어갈지 정합니다. 인원을 조 개수로 나눈 몫을 모든 조에 주고, 나머지는 한 명씩 나눠서 <b>조 크기 차이가 1명을 넘지 않게</b> 합니다. 예를 들어 14명을 4개 조로 나누면 4·4·3·3명, 조당 4명으로 나누면 4개 조가 필요해 역시 4·4·3·3명이 됩니다. 어느 조가 한 명 더 받을지도 무작위입니다.</p>
+    <p>다음으로 조장을 조마다 한 명씩 앉히고, 나머지는 <b>조건이 많이 걸린 사람부터</b> 무작위 순서로 빈자리에 넣습니다. 넣을 곳이 없으면 앞 사람의 자리를 바꿔 다시 시도하는 되추적(백트래킹) 방식이라, 조건을 모두 지키는 편성이 있으면 찾아냅니다. 섞는 데는 브라우저의 암호학적 난수(<code>crypto.getRandomValues</code>)를 씁니다.</p>
+    <p>조건을 모두 지킬 수 없으면 그 이유를 알려 주고, 어긋나는 짝이 되도록 적게 나오게 짠 편성에서 어긋난 사람을 빨간색으로 표시해 보여 줍니다. 예를 들어 서로 떨어져야 하는 사람이 4명인데 조가 3개뿐이면 불가능합니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>"같은 조 안 됨"에 한 줄에 여러 명을 적으면 어떻게 되나요?</summary><p>한 줄에 적은 사람들은 서로 모두 다른 조에 들어갑니다. 세 명을 적으면 세 사람이 각각 다른 조가 되므로 조가 3개 이상 필요합니다. 두 사람씩만 떼어 놓고 싶으면 한 줄에 두 명씩 적으세요.</p></details>
+    <details><summary>조장을 조 개수보다 적게 적어도 되나요?</summary><p>됩니다. 적은 조장은 서로 다른 조에 한 명씩 들어가고, 조장이 없는 조는 그대로 둡니다. 조장이 조 개수보다 많으면 짤 수 없다고 알려 드립니다.</p></details>
+    <details><summary>동명이인이 있으면요?</summary><p>같은 이름은 서로 다른 사람으로 보고 각각 배치하지만, 조건에 그 이름을 적으면 두 사람 모두에게 적용됩니다. 구분이 필요하면 "김민수A", "김민수B"처럼 적어 주세요.</p></details>
+    <details><summary>실력이나 성별을 고르게 나눌 수 있나요?</summary><p>지금은 인원 수만 고르게 맞춥니다. 실력이 비슷한 사람끼리 떨어뜨리고 싶으면 그 사람들을 "같은 조 안 됨"에 한 줄로 적으면 조마다 한 명씩 흩어집니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

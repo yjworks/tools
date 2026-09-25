@@ -1,0 +1,11 @@
+{
+  "name": "STEP·IGES 뷰어",
+  "title": "STEP·IGES 뷰어 — STP 파일 온라인 보기, 부피·3D 프린팅 무게 계산",
+  "desc": "STEP·STP·IGES 파일을 설치 없이 열어 돌려 보고, 부품별 부피와 3D 프린팅 무게·재료비를 추정합니다. 업로드 없음.",
+  "keywords": ["STEP 뷰어", "STP 파일 열기", "STEP 파일 보기", "IGES 뷰어", "IGS 파일 열기", "STEP 부피 계산", "3D 프린팅 무게 계산", "온라인 CAD 뷰어"],
+  "group": "3D 프린팅",
+  "order": 810,
+  "iconText": "STP",
+  "color": "#1e3a5f",
+  "category": "UtilitiesApplication"
+}

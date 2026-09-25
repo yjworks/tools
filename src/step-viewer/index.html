@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  #parts td.name { max-width: 180px; }
+  #parts td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  #parts tr.sel td { background: var(--accent-weak); }
+  #parts .sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; border: 1px solid #0003; }
+  #parts button.link { background: none; color: var(--text); padding: 0; font-weight: 600; font-size: 13.5px; border-radius: 0; text-align: left; }
+  .step-progress { height: 6px; border-radius: 99px; background: var(--line); overflow: hidden; margin-top: 10px; }
+  .step-progress i { display: block; height: 100%; width: 35%; background: var(--accent); border-radius: 99px; animation: stepbar 1.2s ease-in-out infinite; }
+  @keyframes stepbar { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
+  @media (prefers-reduced-motion: reduce) { .step-progress i { animation: none; width: 100%; opacity: .5; } }
+  .lgpl { font-size: 12.5px; margin: 14px 0 0; }
+  #stats table.preview td { white-space: normal; max-width: none; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>STEP·IGES 뷰어 · 출력 견적</h1>
+  <p class="lede">CAD에서 내보낸 STEP·IGES 파일을 설치 없이 열어 돌려 보고, 부품별 <b>부피</b>와 3D 프린팅 <b>무게·필라멘트 길이·재료비</b>를 가늠합니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0" id="drop">
+      <b>STEP·IGES 파일을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">.step .stp .iges .igs (그리고 .brep) · 처음 한 번 해석 엔진(약 7.6MB)을 받습니다</span>
+      <input type="file" accept=".step,.stp,.iges,.igs,.brep,.brp,.p21">
+    </label>
+    <div class="step-progress" id="busy" hidden><i></i></div>
+    <p class="status" id="status"></p>
+    <div id="view" style="height:360px;border-radius:12px;overflow:hidden;margin-top:14px;background:#1a1d24;touch-action:none" hidden></div>
+    <div class="row" id="viewbar" style="margin-top:8px" hidden>
+      <button class="small ghost" id="resetView" type="button">시점 처음으로</button>
+      <label class="muted"><input type="checkbox" id="edges"> 모서리 선 보기</label>
+    </div>
+
+    <div id="partsBox" hidden>
+      <h3 style="margin:18px 0 6px;font-size:16px">부품 <span class="muted" id="partsCount"></span></h3>
+      <div class="row" style="margin-bottom:6px">
+        <button class="small ghost" id="allOn" type="button">모두 포함</button>
+        <button class="small ghost" id="allOff" type="button">모두 빼기</button>
+        <span class="muted">체크를 끄면 화면과 견적에서 빠집니다. 이름을 누르면 강조됩니다.</span>
+      </div>
+      <table class="preview" id="parts"></table>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <label class="field">재료
+        <select id="mat"></select>
+      </label>
+      <label class="field">채움률(%)
+        <input type="number" id="infill" value="15" min="0" max="100" step="5" style="width:90px">
+      </label>
+      <label class="field">벽 두께(mm)
+        <input type="number" id="wall" value="0.8" min="0" max="10" step="0.1" style="width:90px">
+      </label>
+      <label class="field">1kg 가격(원)
+        <input type="number" id="price" value="20000" min="0" step="1000" style="width:110px">
+      </label>
+    </div>
+    <div id="stats"></div>
+    <p class="muted lgpl">STEP·IGES 해석에는 <a href="https://github.com/kovacsv/occt-import-js" rel="noopener">occt-import-js</a>(Open CASCADE Technology 기반, LGPL-2.1)를 고치지 않은 그대로 별도 WebAssembly 파일로 불러 씁니다. <a href="../third-party-licenses.txt">라이선스 전문</a></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>STEP(.step, .stp) 또는 IGES(.iges, .igs) 파일을 놓습니다. 처음에는 해석 엔진을 받느라 몇 초 더 걸리고, 다음부터는 브라우저 캐시를 씁니다.</li>
+      <li>모델이 뜨면 끌어서 돌리고, 휠이나 두 손가락으로 확대합니다. 조립품이면 아래에 부품 목록이 나옵니다.</li>
+      <li>출력하지 않을 부품(나사, 기성품 등)은 체크를 끄세요. 화면과 견적에서 함께 빠집니다.</li>
+      <li>재료·채움률·벽 두께·필라멘트 가격을 슬라이서 설정과 비슷하게 맞추면 예상 무게와 재료비가 나옵니다.</li>
+    </ol>
+
+    <h2>STEP 파일에서 부피를 구하는 방법</h2>
+    <p>STEP·IGES는 STL과 달리 삼각형이 아니라 <b>수학적인 곡면과 경계선(B-rep)</b>으로 모양을 적습니다. 이 도구는 오픈소스 CAD 커널인 OpenCascade로 곡면을 잘게 나눈 삼각형 메시로 바꾼 다음, 삼각형마다 원점과 이은 사면체의 부호 있는 부피를 더해 부품 부피를 구합니다.</p>
+    <ul>
+      <li><b>단위</b>: STEP 파일 머리에는 길이 단위가 적혀 있고, 해석할 때 모두 <b>mm</b>로 바꿉니다. inch나 m로 그린 파일도 따로 단위를 고를 필요가 없습니다. IGES도 파일에 적힌 단위를 따릅니다.</li>
+      <li><b>곡면 오차</b>: 원기둥·구 같은 곡면은 잘게 나눈 평면으로 근사하므로, 볼록한 모양은 실제보다 조금 작게 나옵니다. CAD 프로그램이 보여 주는 부피와 조금 다른 것은 이 때문입니다. 평면으로만 된 부품은 오차가 거의 없습니다.</li>
+      <li><b>닫힘 검사</b>: 모든 모서리를 정확히 두 삼각형이 나눠 쓰는지 확인합니다. 곡면만 있고 속이 없는 IGES 서피스처럼 닫히지 않은 부품은 부피를 믿을 수 없어 "열림"으로 표시합니다.</li>
+    </ul>
+    <p>무게 추정은 <a href="../stl-estimate/">STL 뷰어·출력 견적</a>과 같은 방식입니다. 겉넓이 × 벽 두께만큼은 꽉 찬 껍질로, 안쪽 나머지는 채움률만큼 찬다고 보고 재료 밀도를 곱합니다. 부품마다 따로 계산해서 더하므로, 여러 부품을 한 판에 올려 출력하는 경우와 비슷합니다. 서포트·브림은 넣지 않아 슬라이서 결과와 10~30% 차이가 날 수 있습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>파일이 서버로 올라가나요?</summary><p>아니요. 해석 엔진(js·wasm 파일)만 이 사이트에서 받아 오고, 고른 CAD 파일은 브라우저 안의 워커에서 읽고 끝납니다.</p></details>
+    <details><summary>SolidWorks·Fusion·인벤터 원본 파일도 열 수 있나요?</summary><p>원본 형식(.sldprt, .f3d, .ipt 등)은 열 수 없습니다. 쓰는 CAD에서 <b>STEP(AP203·AP214·AP242)</b>으로 내보내면 대부분 열립니다. STL은 <a href="../stl-estimate/">STL 뷰어</a>를 쓰세요.</p></details>
+    <details><summary>조립품에서 부품이 겹쳐 있으면 부피가 두 번 세어지나요?</summary><p>네. 부품마다 따로 계산해서 더하므로, 서로 파고든 부품은 겹친 만큼 더 크게 나옵니다. 따로 출력할 부품끼리만 남기고 나머지는 체크를 끄세요.</p></details>
+    <details><summary>"열림" 부품은 무엇인가요?</summary><p>표면에 틈이 있어 속이 막히지 않은 부품입니다. 곡면만 그린 IGES나 일부 면이 빠진 파일에서 생깁니다. 부피가 엉뚱하게 나올 수 있으니 CAD에서 솔리드로 만든 뒤 다시 내보내 보세요.</p></details>
+    <details><summary>휴대폰에서 큰 파일이 안 열려요.</summary><p>해석에는 파일 크기의 여러 배만큼 메모리가 듭니다. 수십 MB가 넘는 조립품은 휴대폰에서 메모리가 모자라 실패할 수 있으니 컴퓨터에서 열거나, 필요한 부품만 따로 내보내 주세요.</p></details>
+
+    <h2>사용한 오픈소스</h2>
+    <p><a href="https://github.com/kovacsv/occt-import-js" rel="noopener">occt-import-js</a> 0.0.23 (Viktor Kovacs)과 그 안의 <a href="https://github.com/Open-Cascade-SAS/OCCT" rel="noopener">Open CASCADE Technology</a>는 GNU LGPL 2.1로 배포됩니다. 이 도구는 두 라이브러리를 고치지 않고, 배포된 <code>occt-import-js.js</code>·<code>occt-import-js.wasm</code> 파일을 따로 불러 쓰기만 합니다. 소스 코드는 위 주소에서 받을 수 있고, 라이선스 전문은 <a href="../third-party-licenses.txt">오픈소스 라이선스</a>에 있습니다.</p>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

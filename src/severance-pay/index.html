@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 12px; }
+  .grid input, .grid select { width: 100%; }
+  .seg { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 0 10px; font-size: 14.5px; }
+  .res { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14.5px; }
+  .res td { border-top: 1px solid var(--line); padding: 7px 4px; vertical-align: top; }
+  .res td:last-child { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .big { font-size: 26px; font-weight: 800; margin: 14px 0 0; }
+  .note { font-size: 13px; color: var(--sub); margin: 8px 0 0; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>퇴직금 계산기</h1>
+  <p class="lede">입사일·마지막 근무일과 최근 3개월 임금으로 <b>1일 평균임금</b>과 <b>법정 퇴직금</b>을 계산합니다. 상여금·연차수당 3/12 산입, 통상임금 비교까지 합니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="grid">
+      <label class="field">입사일<input type="date" id="start" value=""></label>
+      <label class="field">마지막 근무일<input type="date" id="last" value=""></label>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="임금 입력 방식">
+      <label><input type="radio" name="mode" value="month" checked> 월급으로 입력 (×3)</label>
+      <label><input type="radio" name="mode" value="total"> 3개월 임금총액 직접 입력</label>
+    </div>
+    <div class="grid">
+      <label class="field" id="lblWage">월 임금 (세전, 원)<input type="text" id="wage" inputmode="numeric" placeholder="예: 3,000,000"></label>
+      <label class="field">연간 상여금 (원)<input type="text" id="bonus" inputmode="numeric" placeholder="없으면 0"></label>
+      <label class="field">연차수당 (원)<input type="text" id="leave" inputmode="numeric" placeholder="없으면 0"></label>
+      <label class="field">1일 통상임금 (선택)<input type="text" id="ordinary" inputmode="numeric" placeholder="모르면 비워 두세요"></label>
+    </div>
+    <p class="note">임금은 세금·4대보험을 떼기 전 금액입니다. 상여금·연차수당은 퇴직 전 1년 동안 받은 금액을 넣으면 3/12만 반영합니다.</p>
+    <div id="out"></div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li><b>입사일</b>과 <b>마지막 근무일</b>을 고릅니다. 법에서 말하는 퇴직일은 마지막 근무일의 다음 날이라, 도구가 하루를 더해 계산합니다.</li>
+      <li>최근 3개월 월급이 같았다면 <b>월급으로 입력</b>을, 달마다 달랐거나 초과근무수당이 섞여 있다면 급여명세서 3개월 치를 더해 <b>임금총액 직접 입력</b>을 고릅니다.</li>
+      <li>퇴직 전 1년 동안 받은 상여금과 연차수당(미사용 연차에 대해 받은 돈)이 있으면 넣습니다.</li>
+      <li>급여명세서나 근로계약서로 1일 통상임금을 알 수 있으면 넣어 보세요. 평균임금보다 높으면 그 금액으로 다시 계산합니다.</li>
+    </ol>
+
+    <h2>퇴직금은 이렇게 계산합니다</h2>
+    <p>근로자퇴직급여 보장법 제8조는 <b>계속근로기간 1년에 대하여 30일분 이상의 평균임금</b>을 퇴직금으로 주도록 정합니다. 1년이 안 되는 끝부분도 일수로 나눠 반영하므로 식은 다음과 같습니다.</p>
+    <p><code>퇴직금 = 1일 평균임금 × 30일 × (재직일수 ÷ 365)</code></p>
+    <ul>
+      <li><b>1일 평균임금</b>은 퇴직일 이전 3개월 동안 받은 임금총액을 그 3개월의 <b>달력상 총 일수</b>(89~92일)로 나눈 값입니다(근로기준법 제2조제1항제6호). 근무일 수가 아니라 주말을 포함한 날수로 나눕니다.</li>
+      <li><b>상여금·연차수당</b>은 3개월 안에 몰려 받았는지와 관계없이, 1년 동안 받은 금액의 3/12을 3개월 임금총액에 더합니다.</li>
+      <li>이렇게 구한 평균임금이 <b>통상임금보다 낮으면 통상임금을 평균임금으로</b> 봅니다(근로기준법 제2조제2항). 휴직이나 결근으로 3개월 임금이 크게 줄었을 때 주로 해당합니다.</li>
+      <li>계속근로기간이 <b>1년 미만</b>이거나, 4주 평균 1주 소정근로시간이 15시간 미만이면 회사에 퇴직금 지급 의무가 없습니다(같은 법 제4조제1항 단서).</li>
+    </ul>
+    <p class="muted">법 조항 확인일: 2026년 9월 25일. 출처: 찾기쉬운 생활법령정보 「퇴직금 지급」(easylaw.go.kr), 근로자퇴직급여 보장법, 근로기준법.</p>
+    <p>이 도구가 알려 주는 금액은 <b>세전 퇴직금</b>입니다. 실제로 받을 때는 <b>퇴직소득세</b>와 지방소득세가 따로 원천징수되는데, 근속연수공제·환산급여 공제 등 별도 계산을 거치므로 여기서는 계산하지 않습니다. IRP 계좌로 받으면 세금을 미룰 수도 있습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>육아휴직이나 병가 기간이 3개월 안에 있으면 어떻게 하나요?</summary>
+      <p>근로기준법 시행령 제2조는 수습 기간, 사용자 귀책 휴업, 출산전후휴가, 업무상 부상·질병 요양, 육아휴직 등의 기간과 그동안 받은 임금을 평균임금 계산에서 뺀다고 정합니다. 그런 기간이 있다면 이 도구의 결과를 그대로 쓰기보다 고용노동부 상담센터(국번 없이 1350)에 확인하는 것이 안전합니다.</p></details>
+    <details><summary>364일 일하고 그만두면 퇴직금이 없나요?</summary>
+      <p>계속근로기간이 1년에 하루라도 모자라면 법정 퇴직금은 발생하지 않습니다. 1년은 입사일부터 1년 뒤 같은 날짜의 전날까지 근무해야 채워집니다. 예를 들어 2025년 3월 1일 입사라면 2026년 2월 28일까지 근무해야 합니다. 회사 규정으로 1년 미만에도 주는 경우는 예외입니다.</p></details>
+    <details><summary>연봉에 퇴직금이 포함돼 있다는 계약은 유효한가요?</summary>
+      <p>퇴직금은 퇴직할 때 비로소 생기는 권리라서, 매달 월급에 나눠 준 돈을 퇴직금으로 인정하지 않는 것이 판례의 흐름입니다. 다만 개별 사정에 따라 다툼이 있을 수 있으니 계약서를 가지고 노무 상담을 받아 보세요.</p></details>
+    <details><summary>퇴직금은 언제까지 받아야 하나요?</summary>
+      <p>근로자퇴직급여 보장법 제9조에 따라 사용자는 퇴직한 날부터 14일 안에 지급해야 합니다. 당사자끼리 합의하면 기일을 연장할 수 있습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "파비콘 만들기",
+  "title": "파비콘 만들기 — favicon.ico·애플 터치 아이콘·webmanifest 한 번에",
+  "desc": "로고 이미지나 글자·이모지로 favicon.ico(16·32·48), 애플 터치 아이콘, 안드로이드 아이콘, site.webmanifest를 만들어 ZIP으로 저장합니다.",
+  "keywords": ["파비콘 만들기", "favicon 생성", "ico 변환", "apple touch icon", "파비콘 ico", "웹사이트 아이콘"],
+  "group": "사진·이미지",
+  "order": 250,
+  "iconText": "ICO",
+  "color": "#0e7490",
+  "category": "UtilitiesApplication"
+}

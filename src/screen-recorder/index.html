@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  [hidden] { display: none !important; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 0 0 14px; }
+  .opts select { width: 100%; }
+  .check { display: flex; align-items: flex-start; gap: 8px; font-size: 14.5px; line-height: 1.45; cursor: pointer; }
+  .check input { margin-top: 3px; width: 18px; height: 18px; flex: 0 0 auto; }
+  .check small { display: block; color: var(--sub); font-size: 12.5px; }
+  .rec-bar { display: flex; align-items: center; gap: 10px; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 4px 0 10px; }
+  .rec-dot { width: 13px; height: 13px; border-radius: 50%; background: var(--bad); animation: blink 1s steps(2) infinite; }
+  .rec-bar.paused .rec-dot { animation: none; background: var(--sub); }
+  @keyframes blink { 50% { opacity: .2; } }
+  video.preview { display: block; width: 100%; max-height: 60vh; background: #000; border-radius: 10px; margin: 6px 0 12px; }
+  .pc-only { font-size: 13.5px; color: var(--sub); background: var(--bg); border-radius: 10px; padding: 9px 12px; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>화면 녹화 (설치 없이)</h1>
+  <p class="lede">프로그램을 깔지 않고 브라우저만으로 PC 화면·창·탭을 녹화합니다. 탭 소리와 마이크 목소리를 함께 담을 수 있고, 녹화가 끝나면 바로 미리 보고 저장합니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 녹화 파일은 이 컴퓨터에만 저장</p>
+
+  <section class="tool" id="tool">
+    <p class="pc-only">💻 PC 전용입니다. 휴대폰·태블릿 브라우저는 웹 화면 녹화를 지원하지 않습니다.</p>
+    <p class="status bad" id="unsupported" hidden></p>
+
+    <div id="setup">
+      <div class="opts">
+        <label class="check"><input type="checkbox" id="sysAudio" checked><span>화면·탭 소리 담기<small id="sysNote">공유 창에서 "오디오 공유"를 켜 주세요</small></span></label>
+        <label class="check"><input type="checkbox" id="mic"><span>마이크 목소리 담기<small>설명하면서 녹화할 때</small></span></label>
+        <label class="field">파일 형식<select id="fmt"></select></label>
+        <label class="field">초당 프레임<select id="fps"><option value="30" selected>30 (보통)</option><option value="60">60 (움직임 많은 화면)</option><option value="15">15 (문서·슬라이드, 용량 작게)</option></select></label>
+      </div>
+    </div>
+
+    <div class="rec-bar" id="recBar" hidden><span class="rec-dot"></span><span id="timer">0:00</span><span class="muted" id="recInfo"></span></div>
+
+    <div class="row">
+      <button id="start">● 녹화 시작</button>
+      <button id="pause" class="ghost" hidden>일시정지</button>
+      <button id="stop" class="ghost" hidden>■ 정지</button>
+    </div>
+    <p class="status" id="status"></p>
+
+    <div id="result" hidden>
+      <video class="preview" id="preview" controls playsinline></video>
+      <div class="row">
+        <button id="save">녹화 파일 저장</button>
+        <span class="muted" id="resultInfo"></span>
+      </div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>소리를 담을지 고르고 <b>녹화 시작</b>을 누릅니다.</li>
+      <li>브라우저가 띄우는 창에서 녹화할 대상(전체 화면, 창 하나, 브라우저 탭)을 고릅니다. 소리를 담으려면 그 창의 <b>오디오 공유</b>를 켜세요.</li>
+      <li>녹화가 시작되면 위에 시간이 흐릅니다. 필요하면 <b>일시정지</b>로 잠시 멈출 수 있습니다.</li>
+      <li><b>정지</b>를 누르거나 브라우저의 <b>공유 중지</b>를 누르면 녹화가 끝나고 미리보기가 나옵니다. <b>녹화 파일 저장</b>으로 내려받으세요.</li>
+    </ol>
+
+    <h2>브라우저 화면 녹화는 이렇게 동작합니다</h2>
+    <p>브라우저에는 화면을 영상 신호로 넘겨 주는 기능(<code>getDisplayMedia</code>)과, 그 신호를 파일로 굽는 기능(<code>MediaRecorder</code>)이 들어 있습니다. 이 도구는 둘을 이어 붙였을 뿐이라 화면 영상이 어디로도 전송되지 않고, 녹화 조각이 이 탭의 메모리에 쌓였다가 정지하는 순간 한 파일로 묶입니다.</p>
+    <p>마이크와 화면 소리를 함께 고르면 두 소리를 브라우저의 오디오 엔진(Web Audio)에서 하나로 섞어 영상에 붙입니다.</p>
+    <h3>파일 형식은 브라우저가 정합니다</h3>
+    <p>녹화 형식은 브라우저마다 지원 범위가 달라서, 이 도구는 시작할 때 <b>MP4를 지원하면 MP4, 아니면 WebM</b>을 고릅니다. 형식 목록에는 지금 브라우저가 실제로 굽겠다고 답한 형식만 나옵니다. MP4는 휴대폰·윈도우 기본 플레이어에서 열기 쉽고, WebM은 브라우저·VLC 등에서 잘 열립니다.</p>
+    <h3>브라우저별로 되는 것</h3>
+    <table>
+      <tr><th>항목</th><th>지원</th></tr>
+      <tr><td>화면 녹화</td><td>PC의 Chrome 72·Edge 79·Firefox 66·Safari 13 이상. 안드로이드 Chrome·Firefox, 아이폰·아이패드 Safari는 지원하지 않음</td></tr>
+      <tr><td>화면 소리</td><td>Chrome 계열만. Windows·ChromeOS는 전체 화면 공유 때 컴퓨터 소리 전체, macOS·Linux는 브라우저 탭 소리만. Firefox·Safari는 화면 소리를 담지 못함</td></tr>
+    </table>
+    <p class="muted">출처: MDN 브라우저 호환성 데이터(mdn/browser-compat-data의 <code>MediaDevices.getDisplayMedia</code> 항목), 2026년 9월 25일 확인.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>휴대폰에서는 왜 안 되나요?</summary>
+      <p>안드로이드 Chrome·Firefox와 iOS Safari가 웹 페이지에 화면 녹화 기능을 열어 두지 않았기 때문입니다. 휴대폰 화면은 기기에 들어 있는 화면 기록 기능을 쓰시면 됩니다. 이 도구는 PC 브라우저에서 열어 주세요.</p></details>
+    <details><summary>소리가 녹음되지 않았어요.</summary>
+      <p>공유 대상을 고르는 창에서 <b>오디오 공유</b>(탭 오디오 공유, 시스템 오디오 공유)를 켜야 합니다. macOS에서는 Chrome이라도 브라우저 탭 소리만 담을 수 있으니, 유튜브 같은 소리를 녹음하려면 <b>Chrome 탭</b>을 공유 대상으로 고르세요. Firefox·Safari는 화면 소리를 지원하지 않아 <b>마이크 목소리 담기</b>만 쓸 수 있습니다.</p></details>
+    <details><summary>얼마나 길게 녹화할 수 있나요?</summary>
+      <p>정해진 시간 제한은 없지만 녹화 내용이 이 탭의 메모리에 쌓입니다. 한 시간을 넘는 긴 녹화는 컴퓨터 메모리에 따라 브라우저가 느려질 수 있으니, 길면 나눠서 녹화하는 편이 안전합니다. 초당 프레임을 15로 낮추면 용량이 줄어듭니다.</p></details>
+    <details><summary>WebM 파일이 안 열려요.</summary>
+      <p>WebM은 Chrome·Edge·Firefox 같은 브라우저에 파일을 끌어다 놓으면 재생되고, VLC 같은 플레이어로도 열립니다. 재생기에 따라 전체 길이가 표시되지 않거나 앞뒤로 넘기기가 불편할 수 있습니다. 브라우저가 MP4 녹화를 지원하면 형식에서 MP4를 고르세요.</p></details>
+    <details><summary>녹화한 화면이 어딘가로 전송되나요?</summary>
+      <p>전송되지 않습니다. 화면 영상과 소리는 이 탭 안에서만 파일로 만들어지고, 저장 버튼을 누르면 이 컴퓨터의 다운로드 폴더로 갑니다. 창을 닫으면 저장하지 않은 녹화는 사라집니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>
