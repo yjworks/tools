@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>돌림판</h1>
+  <p class="lede">점심 메뉴, 당첨자, 벌칙, 발표 순서. 항목을 적고 돌리세요.</p>
+
+  <section class="tool" id="tool">
+    <div class="row" style="align-items:flex-start;gap:18px">
+      <div style="flex:1 1 300px;min-width:260px;text-align:center">
+        <div style="position:relative;display:inline-block;max-width:100%">
+          <canvas id="wheel" width="720" height="720" style="width:min(360px,100%);height:auto;display:block"></canvas>
+          <div aria-hidden="true" style="position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-top:26px solid var(--text)"></div>
+        </div>
+        <div class="row" style="justify-content:center;margin-top:12px">
+          <button id="spin" style="font-size:17px;padding:12px 28px">돌리기</button>
+        </div>
+        <p class="out" id="result" style="min-height:1.6em;text-align:center"></p>
+      </div>
+      <div style="flex:1 1 220px;min-width:220px">
+        <label class="field">항목 (한 줄에 하나, 2~30개)
+          <textarea id="items" rows="9">김치찌개
+돈가스
+짜장면
+초밥
+쌀국수
+샐러드</textarea>
+        </label>
+        <div class="row" style="margin-top:8px">
+          <label class="muted"><input type="checkbox" id="remove"> 당첨 항목은 빼고 계속</label>
+          <button id="shuffle" class="small ghost">순서 섞기</button>
+        </div>
+        <p class="muted" id="history"></p>
+      </div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>오른쪽 칸에 항목을 한 줄에 하나씩 적습니다. 적는 대로 돌림판이 바뀝니다.</li>
+      <li><b>돌리기</b>를 누르면 몇 초 돌다가 위쪽 화살표가 가리키는 칸에서 멈춥니다.</li>
+      <li><b>당첨 항목은 빼고 계속</b>을 켜면 뽑힌 항목이 빠져서, 순서 정하기나 여러 명 뽑기에 쓸 수 있습니다. 지난 결과는 아래에 쌓입니다.</li>
+    </ol>
+    <p>적은 항목은 이 브라우저에만 저장되어 다음에 열어도 남아 있습니다.</p>
+
+    <h2>정말 무작위인가요</h2>
+    <p>어느 칸에서 멈출지는 돌리기 시작할 때 브라우저의 <b>암호학적 난수</b>(<code>crypto.getRandomValues</code>)로 먼저 정하고, 돌림판은 그 칸까지 감속하며 돌아가는 연출입니다. 모든 칸이 같은 크기라 확률도 똑같이 1/항목 수입니다. 돌리는 힘이나 누르는 시점과는 관계가 없습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>같은 항목을 두 번 적으면 확률이 올라가나요?</summary><p>네. 같은 이름을 두 줄 적으면 칸이 두 개가 되어 뽑힐 확률이 두 배가 됩니다. 가중치를 주고 싶을 때 쓰는 방법입니다.</p></details>
+    <details><summary>사다리타기와 무엇이 다른가요?</summary><p>돌림판은 여러 항목 중 하나를 뽑을 때, <a href="../ladder/">사다리타기</a>는 사람과 결과를 한 번에 짝지을 때 편합니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

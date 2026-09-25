@@ -1,0 +1,11 @@
+{
+  "name": "CSV 한글 깨짐 복구",
+  "title": "CSV 한글 깨짐 복구 — 엑셀에서 깨지는 CSV를 UTF-8로 변환",
+  "desc": "엑셀·구글 시트에서 한글이 깨지는 CSV를 자동으로 판별해 UTF-8(BOM)로 바꿔 줍니다. EUC-KR·CP949 파일도 됩니다.",
+  "keywords": ["CSV 한글 깨짐", "엑셀 CSV 한글 깨짐", "CSV UTF-8 변환", "EUC-KR UTF-8 변환", "CP949 변환"],
+  "group": "문서·텍스트",
+  "order": 10,
+  "iconText": "CSV",
+  "color": "#0f8a5f",
+  "category": "UtilitiesApplication"
+}

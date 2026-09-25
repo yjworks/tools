@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>사진 → PDF 합치기</h1>
+  <p class="lede">영수증·서류 사진, 스캔 이미지를 순서대로 <b>PDF 한 파일</b>로 묶습니다. 제출용 서류를 만들 때 쓰세요.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>사진을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">JPG · PNG · WEBP, 여러 번 나눠 넣어도 뒤에 이어 붙습니다</span>
+      <input type="file" accept="image/jpeg,image/png,image/webp" multiple>
+    </label>
+    <div class="row" style="margin-top:14px">
+      <label class="field">페이지 크기
+        <select id="size">
+          <option value="a4">A4 (사진을 페이지에 맞춤)</option>
+          <option value="letter">US Letter</option>
+          <option value="image">사진 크기 그대로</option>
+        </select>
+      </label>
+      <label class="field">여백
+        <select id="margin">
+          <option value="0">없음</option>
+          <option value="24" selected>좁게 (약 8mm)</option>
+          <option value="48">넓게 (약 17mm)</option>
+        </select>
+      </label>
+      <label class="field">파일 이름
+        <input type="text" id="fname" value="사진모음" style="width:160px">
+      </label>
+    </div>
+    <ul class="files" id="files"></ul>
+    <div class="row" style="margin-top:12px">
+      <button id="make" disabled>PDF 만들기</button>
+      <button id="clear" class="ghost" hidden>모두 빼기</button>
+      <span class="status" id="status"></span>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>사진을 놓습니다. 여러 번 나눠 넣으면 뒤에 이어 붙습니다.</li>
+      <li>목록의 <b>▲ ▼</b>로 순서를 바꾸고, <b>✕</b>로 뺍니다. 목록 순서가 PDF 페이지 순서입니다.</li>
+      <li>페이지 크기와 여백을 고르고 <b>PDF 만들기</b>를 누릅니다.</li>
+    </ol>
+
+    <h2>페이지 크기는 무엇을 고르나요</h2>
+    <ul>
+      <li><b>A4:</b> 인쇄·제출용. 사진 비율을 유지한 채 페이지에 맞추고, 가로로 긴 사진은 가로 페이지로 넣습니다.</li>
+      <li><b>사진 크기 그대로:</b> 페이지가 사진 크기와 같아져 여백 없이 꽉 찹니다. 화면으로 볼 PDF에 알맞습니다.</li>
+    </ul>
+
+    <h2>화질은 어떻게 되나요</h2>
+    <p>JPG는 <b>다시 압축하지 않고 원본 그대로</b> PDF에 넣고, PNG는 손실 없이 넣습니다. 그래서 PDF 용량은 넣은 사진 용량의 합과 비슷합니다. 휴대폰이 회전 정보로 방향을 기록한 사진과 WEBP만 방향을 바로잡아 다시 저장합니다(품질 92%).</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>몇 장까지 넣을 수 있나요?</summary>
+      <p>정해진 제한은 없지만 모든 처리를 휴대폰·PC의 메모리에서 하므로, 고화질 사진 수백 장은 느려질 수 있습니다. 100장 안쪽을 권합니다.</p></details>
+    <details><summary>PDF를 다시 사진으로 바꿀 수도 있나요?</summary>
+      <p>이 도구는 사진 → PDF 방향만 합니다.</p></details>
+    <details><summary>사진이 서버로 올라가나요?</summary>
+      <p>올라가지 않습니다. PDF는 브라우저 안에서 pdf-lib(MIT 라이선스)로 만듭니다. 신분증·계약서 사진처럼 민감한 서류도 기기 밖으로 나가지 않습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

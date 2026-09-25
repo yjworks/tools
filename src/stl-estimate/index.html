@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>STL 뷰어 · 출력 견적</h1>
+  <p class="lede">STL 파일을 돌려 보고, 뽑기 전에 <b>무게·필라멘트 길이·재료비</b>를 가늠합니다. 파일은 서버로 보내지 않습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0" id="drop">
+      <b>STL 파일을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">바이너리·ASCII STL 모두 됩니다</span>
+      <input type="file" accept=".stl,model/stl,application/sla">
+    </label>
+    <div id="view" style="height:340px;border-radius:12px;overflow:hidden;margin-top:14px;background:#1a1d24;touch-action:none" hidden></div>
+    <p class="status" id="status"></p>
+
+    <div class="row" style="margin-top:6px">
+      <label class="field">파일 단위
+        <select id="unit"><option value="mm">mm (보통)</option><option value="cm">cm</option><option value="inch">inch</option></select>
+      </label>
+      <label class="field">재료
+        <select id="mat"></select>
+      </label>
+      <label class="field">채움률(%)
+        <input type="number" id="infill" value="15" min="0" max="100" step="5" style="width:90px">
+      </label>
+      <label class="field">벽 두께(mm)
+        <input type="number" id="wall" value="0.8" min="0" max="10" step="0.1" style="width:90px">
+      </label>
+      <label class="field">1kg 가격(원)
+        <input type="number" id="price" value="20000" min="0" step="1000" style="width:110px">
+      </label>
+    </div>
+    <div id="stats"></div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>STL 파일을 놓으면 모델이 보입니다. 끌어서 돌리고, 두 손가락이나 휠로 확대합니다.</li>
+      <li>재료, 채움률(인필), 벽 두께, 필라멘트 1kg 가격을 슬라이서 설정과 비슷하게 맞춥니다.</li>
+      <li>크기·부피와 함께 예상 무게, 필라멘트 길이(1.75mm 기준), 재료비가 나옵니다.</li>
+    </ol>
+
+    <h2>어떻게 계산하나요</h2>
+    <p><b>부피</b>는 메시의 삼각형마다 원점과 이은 사면체의 부피를 더해서 구합니다. 구멍 없이 닫힌 메시라면 정확한 값입니다.</p>
+    <p><b>출력 무게</b>는 슬라이서가 실제로 만드는 경로를 흉내 내지 않고 이렇게 단순화합니다.</p>
+    <ul>
+      <li>겉면은 <b>겉넓이 × 벽 두께</b>만큼 꽉 찬 껍질로 봅니다(벽 두께 = 벽 줄 수 × 노즐 폭, 0.4mm 노즐 2줄이면 0.8mm).</li>
+      <li>안쪽 나머지는 <b>채움률</b>만큼만 찬다고 봅니다.</li>
+      <li>무게 = 채운 부피 × 재료 밀도. 필라멘트 길이 = 무게 ÷ (필라멘트 단면적 × 밀도).</li>
+    </ul>
+    <p>서포트, 브림·래프트, 윗면·아랫면 두께 차이, 노즐 청소량은 넣지 않으므로 <b>슬라이서 결과와 10~30% 차이</b>가 날 수 있습니다. 견적 전에 대략을 보는 용도로 쓰세요.</p>
+    <table>
+      <tr><th>재료</th><th>밀도 (g/cm³)</th></tr>
+      <tr><td>PLA</td><td>1.24</td></tr><tr><td>PETG</td><td>1.27</td></tr><tr><td>ABS</td><td>1.04</td></tr>
+      <tr><td>ASA</td><td>1.07</td></tr><tr><td>TPU</td><td>1.21</td></tr><tr><td>PLA-CF</td><td>1.30</td></tr>
+    </table>
+    <p class="muted">대표값입니다. 제조사·색상에 따라 조금씩 다르니, 쓰는 필라멘트의 제품 정보가 있으면 그 값으로 생각하세요.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>크기가 너무 크거나 작게 나와요.</summary><p>STL에는 단위가 적혀 있지 않습니다. 대부분 mm로 저장하지만 일부 프로그램은 inch나 cm로 내보냅니다. 크기가 이상하면 파일 단위를 바꿔 보세요.</p></details>
+    <details><summary>"면 방향이 뒤집혀 있습니다"는 무슨 뜻인가요?</summary><p>메시의 삼각형 방향(법선)이 안쪽을 향하게 저장된 파일입니다. 부피는 절댓값으로 계산하므로 결과에는 문제가 없지만, 슬라이서에서 경고가 날 수 있으니 모델링 프로그램에서 법선을 뒤집어 저장하는 것이 좋습니다.</p></details>
+    <details><summary>STEP·3MF·OBJ 파일도 되나요?</summary><p>지금은 STL만 됩니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

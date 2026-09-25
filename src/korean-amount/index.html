@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>숫자 → 한글 금액</h1>
+  <p class="lede">계약서·영수증·차용증에 쓰는 <b>일금 오백만원정 (₩5,000,000)</b> 같은 금액 표기를 만들어 줍니다.</p>
+
+  <section class="tool" id="tool">
+    <label class="field" for="num">금액 (숫자)</label>
+    <input type="text" id="num" inputmode="numeric" placeholder="예: 5000000 또는 5,000,000" autofocus style="width:100%;font-size:20px">
+    <div class="row" style="margin-top:12px">
+      <label class="muted"><input type="checkbox" id="il" checked> '일' 붙이기 (일백만)</label>
+      <label class="muted"><input type="checkbox" id="spacing"> 만·억 단위 띄어쓰기</label>
+    </div>
+    <div id="results"></div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <p>숫자를 입력하면 쉼표·'원'이 섞여 있어도 알아서 읽고, 네 가지 표기를 한꺼번에 보여 줍니다. 필요한 줄 옆의 <b>복사</b>를 누르세요. 경(10<sup>16</sup>) 단위까지 됩니다.</p>
+
+    <h2>왜 '일금 ○○원정'이라고 쓰나요</h2>
+    <p>숫자만 적으면 <code>5,000,000</code> 앞뒤에 숫자를 덧붙여 금액을 고치기 쉽습니다. 그래서 계약서·수표·영수증에는 금액을 글자로 함께 적고, 앞에 <b>일금(一金)</b>, 뒤에 <b>정(整)</b>을 붙여 "이 금액이 전부이고 더 붙일 수 없다"는 뜻을 나타냅니다.</p>
+    <ul>
+      <li><b>'일' 붙이기:</b> <code>1,000,000</code>을 '백만'이 아니라 '일백만'으로 씁니다. 앞에 글자를 끼워 넣는 것을 막으려는 관례라 계약서에는 켜 두는 편이 안전합니다.</li>
+      <li><b>갖은자:</b> 一·二·三은 획을 더해 二를 三으로 바꾸기 쉬워서, 획이 많은 壹·貳·參을 대신 씁니다. 은행 수표와 오래된 서식에서 볼 수 있습니다.</li>
+    </ul>
+    <table>
+      <tr><th>숫자</th><th>한글</th><th>갖은자</th></tr>
+      <tr><td>1</td><td>일</td><td>壹</td></tr><tr><td>2</td><td>이</td><td>貳</td></tr><tr><td>3</td><td>삼</td><td>參</td></tr>
+      <tr><td>4</td><td>사</td><td>肆</td></tr><tr><td>5</td><td>오</td><td>伍</td></tr><tr><td>6</td><td>육</td><td>陸</td></tr>
+      <tr><td>7</td><td>칠</td><td>柒</td></tr><tr><td>8</td><td>팔</td><td>捌</td></tr><tr><td>9</td><td>구</td><td>玖</td></tr>
+      <tr><td>10 · 100 · 1,000</td><td>십 · 백 · 천</td><td>拾 · 佰 · 仟</td></tr>
+      <tr><td>만 · 억 · 조</td><td>만 · 억 · 조</td><td>萬 · 億 · 兆</td></tr>
+    </table>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>'원정'과 '원整' 중 무엇을 써야 하나요?</summary>
+      <p>한글 서식에는 보통 '원정', 한자 서식에는 '圓整'을 씁니다. 뜻은 같습니다. 이 도구는 한글 표기에 '원정', 갖은자 표기에 '圓整'을 붙입니다.</p></details>
+    <details><summary>띄어쓰기는 어떻게 하는 게 맞나요?</summary>
+      <p>한글 맞춤법은 수를 '만' 단위로 띄어 쓰도록 하지만(예: 일백이십만 삼천), 계약서의 금액은 끼워 넣기를 막으려고 붙여 쓰는 경우가 많습니다. 기본은 붙여 쓰기이고, 필요하면 띄어쓰기를 켜세요.</p></details>
+    <details><summary>소수점(원 단위 아래)도 되나요?</summary>
+      <p>원화 금액은 원 단위까지만 쓰므로 정수만 받습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

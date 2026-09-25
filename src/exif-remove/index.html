@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>사진 위치정보 지우기</h1>
+  <p class="lede">휴대폰 사진에는 <b>찍은 장소의 좌표</b>가 들어 있을 수 있습니다. 중고거래·블로그에 올리기 전에 위치·기종·날짜 정보를 확인하고 지우세요.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>사진을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">JPG · PNG · WEBP, 여러 장도 됩니다</span>
+      <input type="file" accept="image/jpeg,image/png,image/webp" multiple>
+    </label>
+    <p class="status" id="status"></p>
+    <ul class="files" id="files"></ul>
+    <div class="row" id="actions" hidden style="margin-top:12px">
+      <button id="saveAll">정보 지우고 모두 내려받기</button>
+      <span class="muted" id="zipNote"></span>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>사진을 놓으면 사진마다 <b>위치정보가 있는지</b>, 어떤 기종으로 언제 찍었는지 보여 줍니다.</li>
+      <li><b>정보 지우고 모두 내려받기</b>를 누르면 정보를 뺀 사진이 저장됩니다. 여러 장이면 ZIP 하나로 묶습니다.</li>
+      <li>원본 사진은 바뀌지 않습니다. 저장된 새 파일을 올리세요.</li>
+    </ol>
+
+    <h2>사진에 어떤 정보가 들어 있나요</h2>
+    <p>사진 파일에는 이미지와 함께 <b>EXIF</b>라는 기록이 붙습니다. 카메라 앱 설정에 따라 다음이 들어갑니다.</p>
+    <ul>
+      <li><b>GPS 좌표:</b> 위도·경도. 집에서 찍은 사진이면 집 위치가 됩니다.</li>
+      <li><b>촬영 일시</b>, <b>기종</b>(제조사·모델), 사진을 고친 <b>프로그램 이름</b></li>
+      <li>렌즈·조리개·셔터 속도 같은 촬영 설정, 작은 미리보기 이미지</li>
+    </ul>
+    <p>카카오톡처럼 전송할 때 정보를 지워 주는 서비스도 있지만, 파일을 그대로 첨부하거나 원본으로 보내면 남는 경우가 많습니다.</p>
+
+    <h2>화질이 떨어지지 않나요</h2>
+    <p>JPG와 PNG는 <b>이미지 데이터는 한 바이트도 건드리지 않고</b> 정보 블록만 잘라 냅니다(JPG의 APP1·APP13·주석, PNG의 텍스트·eXIf 청크). 다시 압축하지 않으므로 화질이 그대로입니다. 색 정보(ICC 프로필)는 색이 달라 보이지 않도록 남깁니다.</p>
+    <p>다만 휴대폰이 <b>회전 정보</b>로 사진 방향을 기록한 경우에는, 정보를 지우면 사진이 옆으로 누워 보일 수 있습니다. 이런 사진은 방향을 바로 세워서 다시 저장하므로(품질 92%) 목록에 "방향 보정"이라고 표시합니다. WEBP도 같은 방식으로 다시 저장합니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>아이폰 HEIC 사진도 되나요?</summary>
+      <p>대부분의 브라우저가 HEIC를 열지 못해 지금은 지원하지 않습니다. 아이폰 설정 → 카메라 → 포맷에서 '높은 호환성'을 고르면 JPG로 찍힙니다.</p></details>
+    <details><summary>위치정보가 없다고 나오는데 정말 없나요?</summary>
+      <p>이 도구가 읽는 곳(EXIF의 GPS 항목)에는 없다는 뜻입니다. 같은 파일을 한 번 더 넣어 보면 지운 뒤의 상태도 확인할 수 있습니다.</p></details>
+    <details><summary>사진이 서버로 올라가나요?</summary>
+      <p>올라가지 않습니다. 파일은 이 브라우저 안에서만 읽고 고칩니다. 위치를 숨기려는 사진을 다른 서버에 올려야 하는 모순이 없도록 만든 도구입니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

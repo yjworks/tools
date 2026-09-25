@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>한영타 변환</h1>
+  <p class="lede">한/영 키를 깜빡하고 <code>dkssudgktpdy</code>처럼 쳐 버린 글을 <b>안녕하세요</b>로 되돌립니다. 한글을 영문 자판 순서로 바꾸는 것도 됩니다.</p>
+
+  <section class="tool" id="tool">
+    <label class="field" for="in">바꿀 글</label>
+    <textarea id="in" placeholder="예: dkssudgktpdy, gksrmf" autofocus spellcheck="false"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button id="toKo">영타 → 한글</button>
+      <button id="toEn" class="ghost">한글 → 영타</button>
+      <label class="muted"><input type="checkbox" id="auto" checked> 입력하는 대로 자동 변환</label>
+    </div>
+    <label class="field" for="out" style="margin-top:6px">결과</label>
+    <textarea id="out" readonly spellcheck="false"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button id="copy" class="ghost">결과 복사</button>
+      <span class="status" id="status"></span>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>잘못 친 글을 위 칸에 붙여 넣습니다. 자동 변환이 켜져 있으면 바로 결과가 나옵니다.</li>
+      <li>글에 한글이 섞여 있으면 <b>한글 → 영타</b>로, 영문만 있으면 <b>영타 → 한글</b>로 자동으로 고릅니다. 버튼을 누르면 방향을 직접 정할 수 있습니다.</li>
+      <li><b>결과 복사</b>를 누르면 클립보드로 복사됩니다.</li>
+    </ol>
+
+    <h2>어떻게 되돌리나요</h2>
+    <p>한국어 키보드 대부분은 <b>두벌식</b> 배열입니다. 영문 <code>d</code> 자리에 <code>ㅇ</code>, <code>k</code> 자리에 <code>ㅏ</code>가 있는 식이라, 영문으로 친 글자를 같은 자리의 자모로 바꾼 뒤 한글 조합 규칙대로 모으면 원래 글이 됩니다.</p>
+    <ul>
+      <li>받침 다음에 모음이 오면 받침이 다음 글자로 넘어갑니다: <code>ekfrdmf</code> → ㄷㅏㄹㄱㅇㅡㄹ → <b>닭을</b></li>
+      <li>겹받침(ㄳ·ㄺ·ㅄ 등)과 겹모음(ㅘ·ㅝ·ㅢ 등)도 조합합니다: <code>rkqt</code> → <b>값</b>, <code>dhkd</code> → <b>왕</b></li>
+      <li>대문자는 Shift를 누른 것으로 봅니다: <code>R</code> → ㄲ, <code>E</code> → ㄸ, <code>T</code> → ㅆ, <code>O</code> → ㅒ, <code>P</code> → ㅖ</li>
+      <li>숫자·기호·띄어쓰기는 그대로 둡니다.</li>
+    </ul>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>영어 단어가 섞여 있으면 어떻게 되나요?</summary>
+      <p>영문은 모두 한글 자판으로 보고 바꿉니다. 그래서 원래 영어였던 단어(예: <code>ok</code>)도 <b>ㅐㅏ</b>처럼 바뀝니다. 영어 부분은 결과에서 직접 되돌려 주세요.</p></details>
+    <details><summary>세벌식 자판도 되나요?</summary>
+      <p>지금은 두벌식 표준 배열만 지원합니다.</p></details>
+    <details><summary>입력한 글이 어딘가로 전송되나요?</summary>
+      <p>아니요. 변환은 이 페이지의 스크립트가 브라우저 안에서만 합니다. 비밀번호처럼 민감한 글이라도 밖으로 나가지 않습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

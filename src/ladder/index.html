@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>사다리타기</h1>
+  <p class="lede">회식 계산, 청소 당번, 발표 순서. 참가자와 결과를 넣고 사다리를 만드세요. 이름을 누르면 길을 따라 내려갑니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="row" style="align-items:stretch">
+      <label class="field" style="flex:1;min-width:200px">참가자 (한 줄에 한 명, 2~12명)
+        <textarea id="names" rows="6">철수
+영희
+민수
+지은</textarea>
+      </label>
+      <label class="field" style="flex:1;min-width:200px">결과 (한 줄에 하나, 비우면 1번·2번…)
+        <textarea id="results" rows="6">꽝
+꽝
+커피 쏘기
+꽝</textarea>
+      </label>
+    </div>
+    <div class="row">
+      <button id="make">사다리 만들기</button>
+      <label class="muted"><input type="checkbox" id="hide" checked> 결과 가리기</label>
+      <button id="all" class="ghost" hidden>전체 결과 보기</button>
+    </div>
+    <div id="board" style="overflow-x:auto"></div>
+    <div id="summary"></div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>참가자와 결과를 한 줄에 하나씩 적습니다. 결과가 참가자보다 적으면 모자란 칸은 <b>꽝</b>으로 채웁니다.</li>
+      <li><b>사다리 만들기</b>를 누르면 매번 새로운 사다리가 생깁니다.</li>
+      <li>위쪽 이름을 누르면 그 사람의 길이 그려지고 도착한 결과가 드러납니다. <b>전체 결과 보기</b>로 한 번에 볼 수도 있습니다.</li>
+    </ol>
+
+    <h2>사다리는 공정한가요</h2>
+    <p>사다리타기는 <b>누가 어떤 결과를 받든 한 사람에 한 결과</b>가 정확히 대응되는 구조입니다. 가로줄은 이웃한 두 세로줄을 바꿔 주기만 하므로 두 사람이 같은 칸에 도착하는 일이 없습니다.</p>
+    <p>가로줄 위치는 브라우저의 <b>암호학적 난수</b>(<code>crypto.getRandomValues</code>)로 정합니다. 같은 높이에 이웃한 가로줄이 붙지 않도록 하고, 모든 칸 사이에 가로줄이 한 개 이상 있게 만들어 한 사람이 그대로 곧장 내려오는 칸이 생기지 않습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>몇 명까지 되나요?</summary><p>2명부터 12명까지입니다. 휴대폰 화면에서는 8명이 넘으면 좌우로 밀어서 봅니다.</p></details>
+    <details><summary>한 번 만든 사다리를 다시 볼 수 있나요?</summary><p>페이지를 새로 고치면 사라집니다. 결과를 남기려면 전체 결과 보기 화면을 캡처해 두세요.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

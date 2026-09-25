@@ -1,0 +1,104 @@
+/* dibrain.dev/tools 공통 스타일. 첫 화면(hub)과 같은 색·글꼴을 쓴다. */
+:root {
+  --bg: #f7f7f5; --card: #fff; --text: #16181d; --sub: #5b606b; --line: #e3e4e8;
+  --accent: #2f6fed; --accent-weak: #e8efff; --ok: #0f8a5f; --warn: #b45309; --bad: #c0392b;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111318; --card: #1a1d24; --text: #eceef2; --sub: #a0a6b2; --line: #2a2e37;
+    --accent: #7aa2ff; --accent-weak: #1f2a44; --ok: #34d399; --warn: #fbbf24; --bad: #f87171; }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.65; word-break: keep-all;
+  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
+a { color: var(--accent); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 18px; }
+
+header.site { border-bottom: 1px solid var(--line); background: var(--card); }
+header.site .wrap { display: flex; align-items: center; gap: 10px; height: 58px; }
+header.site .brand { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 17px; color: var(--text); text-decoration: none; letter-spacing: -.02em; }
+header.site nav { margin-left: auto; display: flex; gap: 16px; font-size: 15px; }
+header.site nav a { color: var(--sub); text-decoration: none; }
+header.site nav a:hover { color: var(--accent); }
+
+main.wrap { padding-top: 26px; padding-bottom: 20px; }
+h1 { font-size: 30px; line-height: 1.3; letter-spacing: -.03em; margin: 0 0 8px; }
+.lede { color: var(--sub); font-size: 16.5px; margin: 0 0 22px; }
+.badge-local { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent);
+  padding: 4px 10px; border-radius: 999px; margin: 0 0 16px; font-weight: 600; }
+
+/* 도구 본체 */
+.tool { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; margin: 0 0 26px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 0 0 12px; }
+.row:last-child { margin-bottom: 0; }
+label.field { display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; color: var(--sub); font-weight: 600; }
+input[type=text], input[type=number], input[type=search], select, textarea {
+  font: inherit; font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.6; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
+button, .btn { font: inherit; font-size: 15px; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer;
+  background: var(--accent); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+button.ghost, .btn.ghost { background: var(--accent-weak); color: var(--accent); }
+button:disabled { opacity: .45; cursor: not-allowed; }
+button.small { padding: 6px 10px; font-size: 13px; }
+
+.drop { display: block; border: 2px dashed var(--line); border-radius: var(--radius); padding: 28px 16px; text-align: center; color: var(--sub); cursor: pointer; transition: border-color .15s, background .15s; }
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-weak); }
+.drop b { color: var(--text); display: block; font-size: 16px; margin-bottom: 4px; }
+.drop input { display: none; }
+
+.status { font-size: 14px; color: var(--sub); margin: 10px 0 0; min-height: 1.4em; }
+.status.ok { color: var(--ok); } .status.warn { color: var(--warn); } .status.bad { color: var(--bad); }
+.out { font-size: 22px; font-weight: 700; word-break: break-all; }
+.muted { color: var(--sub); font-size: 13.5px; }
+
+table.preview { width: 100%; border-collapse: collapse; font-size: 13.5px; display: block; overflow: auto; max-height: 360px; }
+table.preview td, table.preview th { border: 1px solid var(--line); padding: 5px 8px; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+table.preview th { background: var(--bg); position: sticky; top: 0; }
+
+ul.files { list-style: none; margin: 12px 0 0; padding: 0; }
+ul.files li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+ul.files li:first-child { border-top: 0; }
+ul.files img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; flex: 0 0 auto; background: var(--bg); }
+ul.files .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+ul.files .tag { font-size: 12.5px; padding: 2px 8px; border-radius: 999px; background: var(--bg); color: var(--sub); white-space: nowrap; }
+ul.files .tag.warn { color: var(--warn); background: color-mix(in srgb, var(--warn) 12%, transparent); }
+ul.files .tag.ok { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); }
+
+/* 광고: 도구와 설명 사이 한 곳 */
+.ad { margin: 0 0 26px; padding-top: 6px; }
+.ad-label { display: block; font-size: 11.5px; color: var(--sub); margin-bottom: 4px; }
+
+/* 설명 글 */
+.guide { font-size: 16px; }
+.guide h2 { font-size: 21px; letter-spacing: -.02em; margin: 34px 0 10px; }
+.guide h3 { font-size: 17px; margin: 22px 0 6px; }
+.guide p, .guide li { color: var(--text); }
+.guide ol, .guide ul { padding-left: 1.3em; }
+.guide code { background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; font-size: .92em; }
+.guide details { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 8px 0; background: var(--card); }
+.guide summary { font-weight: 700; cursor: pointer; }
+.guide details p { margin: 8px 0 2px; }
+.guide table { border-collapse: collapse; font-size: 14.5px; }
+.guide th, .guide td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; }
+
+/* 카드 목록 */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.card { display: flex; gap: 12px; align-items: center; padding: 14px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); text-decoration: none; color: inherit; }
+.card:hover { border-color: var(--accent); }
+.card img { border-radius: 11px; flex: 0 0 auto; }
+.card b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+.card small { display: block; font-size: 13px; color: var(--sub); line-height: 1.5; }
+section.related, section.group { margin: 34px 0; }
+section.related h2, section.group h2 { font-size: 13px; font-weight: 700; letter-spacing: .06em; color: var(--sub); margin: 0 0 12px; padding-bottom: 9px; border-bottom: 1px solid var(--text); }
+
+footer.site { border-top: 1px solid var(--line); margin-top: 40px; padding: 18px 0 30px; font-size: 13.5px; color: var(--sub); }
+footer.site a { color: var(--sub); }
+footer.site p { margin: 4px 0; }
+
+@media (max-width: 600px) {
+  h1 { font-size: 25px; }
+  header.site nav { gap: 12px; font-size: 14px; }
+  .tool { padding: 14px; }
+}
