@@ -99,11 +99,21 @@ function related(tools, slug) {
     .join('')}</div></section>`;
 }
 
+/* 분류 순서와 주소 조각. dibrain.dev 첫 화면(블로그 저장소 hub/index.html, scripts/build_hub.py)과 같게 둔다.
+   여기 없는 분류는 뒤에 붙는다. */
+const GROUPS = [['생활 계산', 'life'], ['문서·텍스트', 'docs'], ['사진·이미지', 'image'], ['오디오·영상', 'media'], ['모임·놀이', 'play'], ['3D 프린팅', '3d']];
+
 function toolList(tools) {
-  const groups = {};
-  for (const t of tools) (groups[t.group || '기타'] ||= []).push(t);
-  return Object.entries(groups)
-    .map(([g, list]) => `<section class="group"><h2>${esc(g)}</h2><div class="cards">${list
+  const order = GROUPS.map(([g]) => g), ids = Object.fromEntries(GROUPS), by = {};
+  for (const t of tools) {
+    const g = t.group || '기타';
+    if (!by[g]) { by[g] = []; if (!order.includes(g)) order.push(g); }
+    by[g].push(t);
+  }
+  const groups = order.filter((g) => by[g]).map((g, i) => ({ g, id: `t-${ids[g] || `g${i}`}`, list: by[g] }));
+  const chips = `<ul class="chips">${groups.map(({ g, id, list }) => `<li><a class="chip" href="#${id}">${esc(g)} <b>${list.length}</b></a></li>`).join('')}</ul>`;
+  return chips + groups
+    .map(({ g, id, list }) => `<section class="group" id="${id}"><h2>${esc(g)} · ${list.length}</h2><div class="cards">${list
       .map((t) => `<a class="card" href="./${t.slug}/"><img src="./${t.slug}/icon.svg" alt="" width="48" height="48" loading="lazy"><span><b>${esc(t.name)}</b><small>${esc(t.desc)}</small></span></a>`)
       .join('')}</div></section>`)
     .join('');
