@@ -1,0 +1,11 @@
+{
+  "name": "HEIC → JPG 변환",
+  "title": "HEIC JPG 변환 — 아이폰 사진 여러 장 한 번에, 업로드 없이",
+  "desc": "아이폰 HEIC 사진을 JPG·PNG로 여러 장 한 번에 바꾸고 ZIP으로 받습니다. 위치정보는 기본으로 지우고, 사진은 서버로 보내지 않습니다.",
+  "keywords": ["HEIC JPG 변환", "HEIC 변환", "아이폰 사진 JPG", "HEIF 변환", "HEIC PNG 변환", "HEIC 파일 열기"],
+  "group": "이미지 변환",
+  "order": 260,
+  "iconText": "JPG",
+  "color": "#6b21a8",
+  "category": "MultimediaApplication"
+}
