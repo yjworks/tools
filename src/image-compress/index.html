@@ -8,7 +8,7 @@
   .seg { display: flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
   .seg label { flex: 1; text-align: center; padding: 9px 6px; cursor: pointer; font-weight: 700; color: var(--sub); font-size: 15px; }
   .seg input { position: absolute; opacity: 0; pointer-events: none; }
-  .seg label:has(input:checked) { background: var(--accent); color: #fff; }
+  .seg label:has(input:checked) { background: var(--accent); color: var(--on-accent); }
   .seg label:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
   input[type=range] { width: 100%; accent-color: var(--accent); }
   .qv { color: var(--text); font-variant-numeric: tabular-nums; }
@@ -33,7 +33,7 @@
   .cmp-head { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 0 0 10px; }
   .cmp-head b { flex: 1 1 200px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .zoom { display: flex; gap: 4px; }
-  .zoom button[aria-pressed=true] { background: var(--accent); color: #fff; }
+  .zoom button[aria-pressed=true] { background: var(--accent); color: var(--on-accent); }
   .panes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .pane { min-width: 0; }
   .pane .lab { font-size: 13px; color: var(--sub); margin: 0 0 4px; display: flex; justify-content: space-between; gap: 6px; }

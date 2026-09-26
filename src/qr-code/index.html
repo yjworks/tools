@@ -5,7 +5,7 @@
 <style>
   .tabs { display: flex; gap: 6px; margin: 0 0 14px; }
   .tabs button { flex: 1; background: var(--accent-weak); color: var(--accent); }
-  .tabs button[aria-selected=true] { background: var(--accent); color: #fff; }
+  .tabs button[aria-selected=true] { background: var(--accent); color: var(--on-accent); }
   /* 좁은 화면(폭 400px 안팎)에서는 한 줄에 하나씩 쌓여 고른 값이 잘리지 않는다 */
   .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 0 0 12px; }
   .opts select, .opts input { width: 100%; }

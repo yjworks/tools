@@ -5,7 +5,7 @@
 <style>
   .seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
   .seg button { flex: 1 1 auto; background: var(--accent-weak); color: var(--accent); min-height: 44px; }
-  .seg button[aria-pressed=true], .seg button[aria-selected=true] { background: var(--accent); color: #fff; }
+  .seg button[aria-pressed=true], .seg button[aria-selected=true] { background: var(--accent); color: var(--on-accent); }
   .seg.tools button { flex: 1 1 0; min-width: 0; padding: 9px 8px; font-size: 14px; }
   @media (max-width: 480px) { .seg.tools.four button { flex: 1 1 calc(50% - 3px); white-space: nowrap; } }
   .dlbox { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin: 0 0 12px; background: var(--bg); }

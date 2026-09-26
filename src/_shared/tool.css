@@ -1,12 +1,13 @@
 /* dibrain.dev/tools 공통 스타일. 첫 화면(hub)과 같은 색·글꼴을 쓴다. */
 :root {
   --bg: #f7f7f5; --card: #fff; --text: #16181d; --sub: #5b606b; --line: #e3e4e8;
-  --accent: #2f6fed; --accent-weak: #e8efff; --ok: #0f8a5f; --warn: #b45309; --bad: #c0392b;
+  --accent: #2f6fed; --accent-weak: #e8efff; --on-accent: #fff; --ok: #0f8a5f; --warn: #b45309; --bad: #c0392b;
   --radius: 14px;
+  /* --on-accent: 강조색 바탕 위 글자. 어두운 화면의 밝은 파랑 위에는 흰 글자가 안 보이므로(2.5:1) 어두운 글자 */
 }
 @media (prefers-color-scheme: dark) {
   :root { --bg: #111318; --card: #1a1d24; --text: #eceef2; --sub: #a0a6b2; --line: #2a2e37;
-    --accent: #7aa2ff; --accent-weak: #1f2a44; --ok: #34d399; --warn: #fbbf24; --bad: #f87171; }
+    --accent: #7aa2ff; --accent-weak: #1f2a44; --on-accent: #111318; --ok: #34d399; --warn: #fbbf24; --bad: #f87171; }
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
@@ -41,7 +42,7 @@ select { max-width: 100%; }
 textarea { width: 100%; min-height: 130px; resize: vertical; line-height: 1.6; }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; border-color: transparent; }
 button, .btn { font: inherit; font-size: 15px; font-weight: 700; border: 0; border-radius: 10px; padding: 10px 16px; cursor: pointer;
-  background: var(--accent); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  background: var(--accent); color: var(--on-accent); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
 button.ghost, .btn.ghost { background: var(--accent-weak); color: var(--accent); }
 button:disabled { opacity: .45; cursor: not-allowed; }
 button.small { padding: 6px 10px; font-size: 13px; min-height: 44px; }
