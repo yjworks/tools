@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  :root { --ft-bar: #3034b8; }
+  @media (prefers-color-scheme: dark) { :root { --ft-bar: #9ea3ff; } }
+  .ft-stage { --ring: #a3d977; background: #15181d; color: #f2f4f6; border-radius: 16px; padding: 18px 14px 16px; text-align: center; }
+  .ft-stage[data-phase="short"] { --ring: #66c7dd; }
+  .ft-stage[data-phase="long"] { --ring: #b9a4ff; }
+  .ft-phase { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; background: #ffffff14; border-radius: 99px; padding: 5px 14px; }
+  .ft-phase i { width: 9px; height: 9px; border-radius: 50%; background: var(--ring); }
+  .ft-ring { position: relative; width: min(300px, 78vw); aspect-ratio: 1; margin: 14px auto 10px; }
+  .ft-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ft-ring .track { stroke: #ffffff17; }
+  .ft-ring .prog { stroke: var(--ring); transition: stroke-dashoffset .35s linear; }
+  @media (prefers-reduced-motion: reduce) { .ft-ring .prog { transition: none; } }
+  .ft-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ft-digits { font-size: clamp(52px, 17vw, 76px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
+  .ft-dots { display: flex; gap: 6px; margin-top: 12px; }
+  .ft-dots span { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #ffffff66; }
+  .ft-dots span.on { background: var(--ring); border-color: var(--ring); }
+  .ft-sub { font-size: 13px; color: #a8aeb8; margin-top: 8px; min-height: 1.3em; }
+  .ft-task { width: min(360px, 100%); margin: 4px auto 12px; display: block; text-align: center; background: #ffffff10 !important; color: #f2f4f6 !important; border-color: #ffffff22 !important; }
+  .ft-task::placeholder { color: #8d949f; }
+  .ft-ctrl { justify-content: center; flex-wrap: nowrap; max-width: 420px; margin-left: auto !important; margin-right: auto !important; gap: 8px; }
+  .ft-ctrl button { flex: 1 1 0; min-width: 0; min-height: 50px; font-size: 16px; justify-content: center; padding: 10px 6px; white-space: nowrap; }
+  .ft-ctrl #startBtn { flex-grow: 1.5; background: var(--ring); color: #111; }
+  .ft-ctrl button.ghost { background: #ffffff18; color: #f2f4f6; }
+  .ft-next { font-size: 13.5px; color: #a8aeb8; margin: 10px 0 0; }
+  .ft-panel h3 { font-size: 16px; margin: 20px 0 8px; letter-spacing: -.01em; }
+  .ft-panel h3:first-child { margin-top: 18px; }
+  .ft-seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .ft-seg button { background: var(--bg); color: var(--text); border: 1px solid var(--line); min-height: 44px; }
+  .ft-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ft-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+  .ft-grid input { width: 100%; }
+  .ft-checks { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+  .ft-checks label { display: flex; align-items: center; gap: 8px; font-size: 15px; min-height: 32px; }
+  .ft-checks input[type=checkbox] { width: 20px; height: 20px; flex: 0 0 auto; }
+  .ft-mixer { display: grid; gap: 8px; }
+  .ft-snd { display: grid; grid-template-columns: 110px 1fr 40px; align-items: center; gap: 10px; }
+  .ft-snd button { justify-content: center; min-height: 44px; padding: 8px 10px; background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+  .ft-snd button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .ft-snd output { font-size: 13px; color: var(--sub); text-align: right; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; min-width: 0; accent-color: var(--accent); height: 28px; }
+  .ft-inline { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .ft-inline input[type=range] { flex: 1 1 140px; width: auto; }
+
+  /* 기록 */
+  .ft-rec h2 { font-size: 18px; margin: 0 0 12px; letter-spacing: -.02em; }
+  .ft-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .ft-tiles div { background: var(--bg); border-radius: 10px; padding: 9px 11px; min-width: 0; }
+  .ft-tiles small { display: block; font-size: 12px; color: var(--sub); }
+  .ft-tiles b { font-size: 20px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .ft-chart { position: relative; margin: 16px 0 4px; }
+  .ft-chart svg { display: block; width: 100%; height: 190px; overflow: visible; }
+  .ft-chart .bar { fill: var(--ft-bar); pointer-events: none; }
+  .ft-chart text { pointer-events: none; }
+  .ft-chart .hit { fill: transparent; cursor: pointer; }
+  .ft-chart .col:hover .bar, .ft-chart .col.sel .bar { opacity: .8; }
+  .ft-chart .base { stroke: var(--line); }
+  .ft-chart text { fill: var(--sub); font-size: 12px; font-family: inherit; }
+  .ft-chart text.val { fill: var(--text); font-weight: 700; }
+  .ft-chart text.today { fill: var(--text); font-weight: 700; }
+  .ft-tip { position: absolute; pointer-events: none; background: var(--text); color: var(--bg); font-size: 12.5px; padding: 5px 9px; border-radius: 7px; white-space: nowrap; transform: translate(-50%, -100%); }
+  .ft-labels { list-style: none; padding: 0; margin: 8px 0 0; font-size: 14.5px; }
+  .ft-labels li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .ft-labels li span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (max-width: 600px) {
+    .ft-grid, .ft-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ft-snd { grid-template-columns: 96px 1fr 36px; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>집중 타이머 — 뽀모도로 방식 공부·작업 타이머</h1>
+  <p class="lede">25분 집중과 5분 휴식처럼 시간을 나눠 공부하거나 일할 때 쓰는 타이머입니다. 백색 소음·빗소리 같은 배경 소리를 섞어 틀 수 있고, 하루와 최근 7일 동안 집중한 시간을 이 기기에 기록합니다.</p>
+
+  <section class="tool" id="tool">
+    <div class="ft-stage" id="stage" data-phase="focus">
+      <div class="ft-phase"><i></i><span id="phaseName">집중</span></div>
+      <div class="ft-ring">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <circle class="track" cx="100" cy="100" r="92" fill="none" stroke-width="8"/>
+          <circle class="prog" id="prog" cx="100" cy="100" r="92" fill="none" stroke-width="8" stroke-linecap="round" stroke-dasharray="578.05" stroke-dashoffset="0"/>
+        </svg>
+        <div class="ft-center">
+          <div class="ft-digits" id="digits" role="timer" aria-live="off">25:00</div>
+          <div class="ft-dots" id="dots" aria-hidden="true"></div>
+          <div class="ft-sub" id="sub"></div>
+        </div>
+      </div>
+      <input type="text" class="ft-task" id="task" maxlength="60" placeholder="지금 할 일 (선택, 이 기기에만 저장)" aria-label="지금 할 일">
+      <div class="row ft-ctrl">
+        <button type="button" id="startBtn">시작</button>
+        <button type="button" class="ghost" id="skipBtn">건너뛰기</button>
+        <button type="button" class="ghost" id="resetBtn">처음부터</button>
+      </div>
+      <p class="ft-next" id="nextInfo"></p>
+    </div>
+
+    <div class="ft-panel">
+      <h3>시간 나누기</h3>
+      <div class="ft-seg" id="presets">
+        <button type="button" data-p="p25">25분 집중 · 5분 휴식</button>
+        <button type="button" data-p="p50">50분 집중 · 10분 휴식</button>
+        <button type="button" data-p="custom">직접 정하기</button>
+      </div>
+      <div class="ft-grid" id="custom">
+        <label class="field">집중(분) <input type="number" id="cFocus" min="1" max="240" step="1" inputmode="decimal"></label>
+        <label class="field">짧은 휴식(분) <input type="number" id="cShort" min="1" max="240" step="1" inputmode="decimal"></label>
+        <label class="field">긴 휴식(분) <input type="number" id="cLong" min="1" max="240" step="1" inputmode="decimal"></label>
+        <label class="field">긴 휴식 간격 <input type="number" id="cEvery" min="1" max="12" step="1" inputmode="numeric"></label>
+      </div>
+      <p class="muted" id="cfgNote" style="margin:6px 0 0"></p>
+      <div class="ft-checks">
+        <label><input type="checkbox" id="autoBreak"> 집중이 끝나면 휴식을 바로 시작</label>
+        <label><input type="checkbox" id="autoFocus"> 휴식이 끝나면 다음 집중을 바로 시작</label>
+      </div>
+
+      <h3>알림</h3>
+      <div class="ft-checks">
+        <label><input type="checkbox" id="chimeOn"> 단계가 끝나면 종소리</label>
+      </div>
+      <div class="ft-inline">
+        <span class="muted">종소리 크기</span>
+        <input type="range" id="chimeVol" min="0" max="1" step="0.05" aria-label="종소리 크기">
+        <button type="button" class="small ghost" id="chimeTest">들어 보기</button>
+      </div>
+      <div class="ft-inline" style="margin-top:10px">
+        <button type="button" class="small ghost" id="notifyBtn">다른 창을 볼 때 알림 받기</button>
+        <span class="muted" id="notifyInfo"></span>
+      </div>
+      <div class="ft-checks">
+        <label><input type="checkbox" id="wakeOn"> 타이머가 도는 동안 화면 켜 두기</label>
+      </div>
+      <p class="muted" id="wakeInfo" style="margin:2px 0 0"></p>
+
+      <h3>배경 소리</h3>
+      <p class="muted" style="margin:0 0 10px">소리를 눌러 켜고, 막대로 크기를 맞춥니다. 여러 소리를 함께 틀 수 있습니다. 모두 브라우저에서 바로 만든 소리입니다.</p>
+      <div class="ft-mixer" id="mixer"></div>
+      <div class="ft-inline" style="margin-top:12px">
+        <span class="muted">전체 크기</span>
+        <input type="range" id="masterVol" min="0" max="1" step="0.05" aria-label="배경 소리 전체 크기">
+        <button type="button" class="small ghost" id="stopAll">모두 끄기</button>
+      </div>
+      <div class="ft-checks">
+        <label><input type="checkbox" id="duckBreak"> 휴식 시간에는 배경 소리 줄이기(서서히 꺼짐)</label>
+      </div>
+      <p class="muted" id="audioInfo" style="margin:4px 0 0"></p>
+    </div>
+  </section>
+
+  <section class="tool ft-rec" id="records" aria-labelledby="recTitle">
+    <h2 id="recTitle">집중 기록</h2>
+    <div class="ft-tiles">
+      <div><small>오늘 집중</small><b id="tToday">0분</b></div>
+      <div><small>오늘 끝까지 마친 집중</small><b id="tDone">0번</b></div>
+      <div><small>최근 7일 합계</small><b id="tWeek">0분</b></div>
+      <div><small>7일 하루 평균</small><b id="tAvg">0분</b></div>
+    </div>
+    <div class="ft-chart" id="chart">
+      <svg id="chartSvg" role="img" aria-label="최근 7일 날마다 집중한 시간 막대그래프"></svg>
+      <div class="ft-tip" id="tip" hidden></div>
+      <table class="sr-only" id="chartTable"></table>
+    </div>
+    <h3 style="font-size:15.5px;margin:16px 0 4px">오늘 한 일</h3>
+    <ul class="ft-labels" id="labels"></ul>
+    <div class="row" style="margin-top:12px">
+      <button type="button" class="small ghost" id="clearRec">기록 지우기</button>
+      <span class="muted">기록과 할 일 이름은 이 기기의 브라우저에만 저장됩니다.</span>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li><b>시간 나누기</b>에서 25분·5분, 50분·10분 가운데 하나를 고르거나 <b>직접 정하기</b>로 집중·휴식 길이와 긴 휴식 간격을 적습니다.</li>
+      <li>필요하면 <b>지금 할 일</b>에 짧게 적고 <b>시작</b>을 누릅니다. 적은 이름은 기록에 함께 남아 오늘 무엇에 얼마나 썼는지 볼 수 있습니다.</li>
+      <li>집중이 끝나면 종소리가 울리고 휴식으로 넘어갑니다. 휴식이나 다음 집중을 저절로 시작할지는 체크 상자로 정합니다.</li>
+      <li><b>건너뛰기</b>는 지금 단계를 그 자리에서 끝내고 다음 단계로 갑니다. 집중을 중간에 끝내도 실제로 흐른 시간은 기록됩니다. <b>처음부터</b>는 순서를 첫 집중으로 되돌립니다.</li>
+      <li><b>배경 소리</b>는 타이머와 따로 켜고 끌 수 있습니다. 여러 소리를 섞어 틀고, 휴식 때는 저절로 줄어들게 할 수도 있습니다.</li>
+    </ol>
+    <p>단축키: 입력칸 밖에서 <kbd>Space</kbd>를 누르면 시작·멈춤입니다. 홈 화면에 추가하면 주소창 없는 별도 창으로 열리고, 한 번 연 뒤에는 인터넷이 없어도 씁니다.</p>
+
+    <h2>뽀모도로 방식과 이 타이머의 시간 계산</h2>
+    <h3>뽀모도로 방식이란</h3>
+    <p>뽀모도로 기법은 이탈리아의 프란체스코 시릴로가 1980년대 말 대학 시절에 쓰던 공부법에서 나온 이름입니다. 토마토 모양 주방 타이머(이탈리아어로 토마토가 pomodoro)를 25분에 맞춰 한 가지 일만 하고, 5분 쉬고, 이를 네 번 하고 나면 조금 길게 쉬는 방식입니다. 일을 작은 단위로 끊어 "이번 25분에는 이것만 한다"고 정해 두는 데 뜻이 있습니다.</p>
+    <p>이 방식이 누구에게나 더 잘 맞는다는 확실한 근거가 있는 것은 아닙니다. 사람과 일의 성격에 따라 25분이 짧을 수도, 길 수도 있습니다. 그래서 50분·10분 같은 긴 단위와 직접 정하는 길이를 함께 두었습니다. 며칠 써 보고 끊기는 느낌이 들면 늘리고, 지치면 줄여 자신에게 맞는 길이를 찾으세요.</p>
+    <h3>순서</h3>
+    <p>집중 → 짧은 휴식 → 집중 → 짧은 휴식 … 을 반복하다가, <b>긴 휴식 간격</b>에 적은 횟수만큼 집중을 마칠 때마다 짧은 휴식 대신 긴 휴식이 들어갑니다. 25/5 기본값은 네 번째 집중 뒤에 15분, 50/10은 세 번째 집중 뒤에 20분을 쉽니다. 가운데 점은 이번 묶음에서 몇 번째 집중인지 보여 줍니다.</p>
+    <h3>탭을 닫거나 숨겨도 시간이 맞는 이유</h3>
+    <p>이 타이머는 1초마다 숫자를 하나씩 줄이지 않습니다. 시작한 <b>시각</b>을 저장해 두고, 화면을 그릴 때마다 "지금 시각 − 시작 시각"으로 남은 시간을 새로 계산합니다. 브라우저가 숨은 탭의 작업을 늦추거나 휴대폰이 잠시 잠들어도, 돌아오는 순간 정확한 남은 시간이 나옵니다. 탭을 닫았다가 다시 열어도 저장된 시각으로 이어서 계산하고, 그사이 끝난 단계는 끝난 시각 그대로 기록합니다.</p>
+    <p>다만 숨은 탭에서는 브라우저가 알림 확인을 늦춰 종소리와 알림이 몇 초에서 1분가량 늦을 수 있습니다. 기록되는 시간은 그와 관계없이 원래 끝나야 했던 시각을 기준으로 합니다.</p>
+    <h3>기록 기준</h3>
+    <ul>
+      <li>집중 시간만 기록합니다. 휴식은 세지 않습니다.</li>
+      <li>끝까지 마친 집중과, 건너뛰거나 처음부터를 눌러 중간에 끝낸 집중 모두 실제로 흐른 시간만큼 들어갑니다. 5초보다 짧은 것은 뺍니다. 멈춰 둔 시간은 들어가지 않습니다.</li>
+      <li>날짜는 기기 시계 기준이며, 자정을 넘긴 집중은 두 날에 나눠 넣습니다. 120일이 지난 기록은 저절로 지워집니다.</li>
+    </ul>
+    <h3>배경 소리는 어떻게 만드나요</h3>
+    <p>소리 파일을 받지 않고 브라우저의 Web Audio로 그 자리에서 만듭니다. 백색 소음은 모든 높이의 소리가 고르게 섞인 잡음이고, 분홍 소음은 높은 소리를 조금 줄여 부드럽게, 갈색 소음은 낮은 소리 쪽으로 더 기울여 웅웅거리는 느낌이 나게 한 것입니다. 빗소리는 걸러 낸 잡음 위에 짧은 물방울 소리를 무작위로 뿌리고, 파도는 낮은 잡음의 크기와 음색을 10초 남짓한 주기로 천천히 오르내리게 했으며, 벽난로는 낮게 울리는 소리 위에 '탁탁' 튀는 소리를 불규칙하게 얹었습니다. 실제 녹음이 아닌 흉내 낸 소리입니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>다른 앱을 쓰거나 화면을 끄면 어떻게 되나요?</summary><p>컴퓨터에서는 다른 탭이나 창을 보고 있어도 타이머와 배경 소리가 계속되고, 알림을 허락하면 단계가 끝날 때 알림이 뜹니다. 휴대폰은 화면이 꺼지거나 다른 앱으로 넘어가면 브라우저가 멈출 수 있어 종소리가 나지 않을 수 있습니다. 그래도 돌아오면 시각 기준으로 계산해 남은 시간과 기록은 맞게 나옵니다. 휴대폰에서 소리 알림이 꼭 필요하면 <b>화면 켜 두기</b>를 켜 두세요.</p></details>
+    <details><summary>알림이 오지 않아요.</summary><p><b>다른 창을 볼 때 알림 받기</b>를 누르고 브라우저가 묻는 창에서 허용해야 합니다. 한 번 거절했다면 주소창 왼쪽의 사이트 설정에서 알림을 허용으로 바꿔 주세요. 아이폰은 이 페이지를 홈 화면에 추가해 연 경우에만(iOS 16.4 이상) 웹 알림을 받을 수 있습니다. 알림은 이 페이지가 숨어 있을 때만 보내고, 화면을 보고 있을 때는 종소리만 울립니다.</p></details>
+    <details><summary>휴대폰에서 소리가 안 나요.</summary><p>아이폰은 무음 스위치가 켜져 있으면 웹 페이지 소리가 나지 않을 수 있습니다. 또 브라우저는 사용자가 한 번 누르기 전에는 소리를 내지 못하게 막기 때문에, 페이지를 새로 연 뒤에는 <b>시작</b>이나 배경 소리 버튼을 한 번 눌러야 소리가 납니다.</p></details>
+    <details><summary>기록은 어디에 저장되나요?</summary><p>집중 기록과 할 일 이름, 설정은 이 기기 브라우저의 저장 공간(localStorage)에만 있습니다. 서버로 보내지 않으므로 다른 기기와 공유되지 않고, 브라우저 사이트 데이터를 지우면 함께 사라집니다. 통계 도구에는 단계가 끝났다는 사실과 길이(분)만 보내며, 할 일 이름은 보내지 않습니다.</p></details>
+    <details><summary>이 사이트의 다른 타이머와 무엇이 다른가요?</summary><p><a href="../timer/">타이머·스톱워치</a>는 발표나 수업처럼 한 번 재는 용도의 큰 숫자 타이머입니다. 집중 타이머는 집중과 휴식을 번갈아 반복하고, 배경 소리와 날짜별 기록을 함께 쓰는 공부·작업용입니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>
