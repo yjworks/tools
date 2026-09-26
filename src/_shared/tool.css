@@ -104,6 +104,11 @@ section.related h2, section.group h2 { font-size: 13px; font-weight: 700; letter
 footer.site { border-top: 1px solid var(--line); margin-top: 40px; padding: 18px 0 30px; font-size: 13.5px; color: var(--sub); }
 footer.site a { color: var(--sub); }
 footer.site p { margin: 4px 0; }
+/* 기록 전체 삭제 줄(기록을 저장하는 도구만) */
+footer.site .reset-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 0 0 14px; margin: 0 0 14px; border-bottom: 1px solid var(--line); }
+footer.site .reset-row button { min-height: 44px; border-radius: 999px; background: transparent; border: 1px solid var(--line); color: var(--sub); }
+footer.site .reset-row button:hover { color: var(--bad); border-color: var(--bad); }
 
 @media (max-width: 600px) {
   h1 { font-size: 25px; }

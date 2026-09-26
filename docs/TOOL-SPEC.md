@@ -34,7 +34,9 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
   "category": "UtilitiesApplication | GameApplication | MultimediaApplication | FinanceApplication",
 
   "pwa": true,            // 선택. 홈 화면 설치 + 오프라인. 켜면 아래 '설치형 앱' 규칙을 따른다
-  "shortName": "누끼"      // 선택. 홈 화면 아이콘 밑 이름(6자 안팎)
+  "shortName": "누끼",     // 선택. 홈 화면 아이콘 밑 이름(6자 안팎)
+  "storage": ["focus-timer:"],   // 기기에 기록을 저장하면 필수. localStorage 키 접두사 목록 → 맨 아래 '기록 전체 삭제'
+  "storageNote": "집중 기록과 설정"  // 확인창에 나오는 '무엇이 지워지는지'
 }
 ```
 
@@ -114,6 +116,7 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
 4. 브라우저가 지원하지 않는 기능(예: 모바일의 화면 녹화)은 기능 확인 후 친절한 안내 문구를 띄운다.
 5. 휴대폰 화면(폭 360px)에서 가로로 넘치지 않게.
 6. 존댓말. 과장("최고", "완벽") 금지.
+7. 기기에 저장하는 키는 `<slug>:` 로 시작한다(다른 앱·도구와 같은 주소를 쓴다). meta.json 의 `storage` 에 적어 두면 맨 아래에 '기록 전체 삭제'가 붙는다.
 
 ## 6. 확인
 

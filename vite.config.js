@@ -86,7 +86,21 @@ const header = `<header class="site"><div class="wrap">
 <nav><a href="/tools/">도구</a><a href="/">앱</a><a href="${cfg.blogUrl}">블로그</a></nav>
 </div></header>`;
 
-const footer = `<footer class="site"><div class="wrap">
+/* 기록을 저장하는 도구(meta.json "storage": 키 접두사 목록)는 맨 아래에 '기록 전체 삭제'를 둔다.
+   dibrain.dev 는 모든 앱·도구가 같은 주소를 쓰므로 그 도구의 키만 지운다(블로그 저장소 brand/README.md '기록 전체 삭제'). */
+function resetRow(page) {
+  if (!page || !page.storage || !page.storage.length) return '';
+  const msg = `이 도구에 저장된 기록을 모두 지웁니다${page.storageNote ? `(${page.storageNote})` : ''}. 되돌릴 수 없습니다. 계속할까요?`;
+  return `<p class="reset-row"><span>기록은 이 기기에만 저장됩니다.${page.storageNote ? ` (${esc(page.storageNote)})` : ''}</span>
+<button type="button" class="ghost small" id="db-reset">기록 전체 삭제</button></p>
+<script>(function(){var P=${JSON.stringify(page.storage)},M=${JSON.stringify(msg)};
+document.getElementById('db-reset').addEventListener('click',function(){if(!confirm(M))return;
+try{var ks=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(P.some(function(p){return k.indexOf(p)===0}))ks.push(k)}ks.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
+location.reload()})})();</script>`;
+}
+
+const footer = (page) => `<footer class="site"><div class="wrap">
+${resetRow(page)}
 <p class="privacy">🔒 이 사이트의 도구는 파일을 서버로 보내지 않습니다. 모든 처리는 지금 쓰는 브라우저 안에서 끝납니다.</p>
 <p><span>© DigitalBrain</span> · <a href="/tools/">도구 목록</a> · <a href="${cfg.blogUrl}privacy/">개인정보처리방침</a> · <a href="mailto:${cfg.contact}">문의·오류 제보</a> · <a href="/tools/third-party-licenses.txt">오픈소스 라이선스</a></p>
 </div></footer>`;
@@ -203,7 +217,7 @@ function htmlParts() {
       return html
         .replace('<!--HEAD-->', head(page))
         .replace('<!--HEADER-->', header)
-        .replace('<!--FOOTER-->', footer)
+        .replace('<!--FOOTER-->', footer(m ? page : null))
         .replace('<!--AD-->', ad)
         .replace('<!--RELATED-->', m ? related(tools, m[1]) : '')
         .replace('<!--TOOL_LIST-->', toolList(tools));
