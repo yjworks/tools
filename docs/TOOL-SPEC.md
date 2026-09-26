@@ -28,9 +28,30 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
   "order": 100,
   "iconText": "아이콘에 들어갈 1~3글자",
   "color": "#hex (배경색, 흰 글씨가 잘 보이는 진한 색)",
-  "category": "UtilitiesApplication | GameApplication | MultimediaApplication | FinanceApplication"
+  "category": "UtilitiesApplication | GameApplication | MultimediaApplication | FinanceApplication",
+
+  "kind": "app",          // 선택. 오래 쓰는 앱이면 "app" → dibrain.dev 첫 화면의 '앱' 칸에 나온다. 없으면 도구
+  "pwa": true,            // 선택. 홈 화면 설치 + 오프라인. 켜면 아래 '설치형 앱' 규칙을 따른다
+  "shortName": "누끼"      // 선택. 홈 화면 아이콘 밑 이름(6자 안팎)
 }
 ```
+
+(위 `//` 설명은 문서용이다. 실제 meta.json 에는 주석을 넣지 않는다.)
+
+### 아이콘
+
+- 기본은 `color` 바탕 + `iconText` 글자. 앱처럼 그림이 필요하면 `src/<slug>/icon.svg` 를 두면 그 파일을 쓴다.
+- `icon.svg` 규칙(블로그 저장소 `brand/README.md`): `viewBox="0 0 96 96"`, `<rect width="96" height="96" rx="22" fill="앱 색">`,
+  가운데 흰(또는 검정) 그림 하나. 글자 로고·캐릭터·사진 금지. **유명 서비스 로고와 닮은 구도 금지**(예: 둥근 사각형 안 원 + 오른쪽 위 점 = 인스타그램).
+  그림은 가운데 지름 76(=80%) 원 안에 둔다(홈 화면에서 잘리지 않게).
+
+### 설치형 앱 (`"pwa": true`)
+
+- 빌드가 `<slug>/manifest.webmanifest` 와 `<slug>/sw.js` 를 만들고 머리말에 연결한다. 직접 만들지 않는다.
+- 설치 아이콘 PNG 는 `node scripts/pwa-icons.cjs <slug>` 로 `public/<slug>/` 에 만든다(없으면 빌드가 멈춘다).
+  글자 아이콘이면 `PRETENDARD_CSS=file:///…/pretendard.css` 를 주어 Pretendard 로 그린다.
+- 오프라인: 페이지와 JS·CSS 는 서비스 워커가 알아서 저장한다. AI 모델처럼 큰 파일은 `/models/` 경로나 모델 호스트에서 받으면
+  배포가 바뀌어도 지워지지 않는 별도 캐시에 들어간다.
 
 ## 3. index.html 뼈대
 
@@ -70,11 +91,16 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
   - `track('tool_use', { tool: '<slug>', … })`: 숫자·종류만. **파일 이름·내용·입력한 글은 절대 넣지 않는다.**
 - 난수: `import { randInt, rand, shuffle } from '../_shared/random.js'` (crypto 기반)
 - CSS 클래스: `.tool .row .field .drop .status(.ok/.warn/.bad) .out .muted button(.ghost/.small) ul.files table.preview .guide details .cards .card`
-- 이미 설치된 패키지: pdf-lib, three, fflate, qrcode-generator, jsqr, cfb, @shiguredo/rnnoise-wasm, mp4-muxer, occt-import-js, exceljs
+- 이미 설치된 패키지: pdf-lib, three, fflate, qrcode-generator, jsqr, cfb, @shiguredo/rnnoise-wasm, mp4-muxer, occt-import-js, exceljs,
+  heic-to(LGPL-3.0: `import()` 로 따로 불러 별도 파일로 두고 고치지 않는다), pdfjs-dist, @mediapipe/tasks-vision, @huggingface/transformers
+- 새로 쓴 패키지는 `public/third-party-licenses.txt` 에 이름·버전·라이선스 전문을 더한다.
 
 ## 5. 원칙
 
 1. **파일·입력은 네트워크로 보내지 않는다.** fetch 로 외부 API 를 부르지 않는다. 모든 처리는 브라우저 안에서.
+   예외는 **받기만 하는** 정적 파일: AI 모델·wasm 을 `storage.googleapis.com`(MediaPipe), `huggingface.co`, `cdn.jsdelivr.net` 에서 받는 것.
+   처음 받기 전에 크기를 알리고 진행률을 보여 준다. 사용자의 사진·소리·글은 어떤 경우에도 올리지 않는다.
+   5MB 이하 모델은 `public/<slug>/models/` 에 넣어도 된다(저장소 파일 하나 50MB 넘기지 않기).
 2. **추측 금지.** 법정 요율·공휴일·기준금리 같은 사실은 공식 출처(법령, 정부·공공기관 발표)로 확인한 값만 쓰고,
    글 안에 출처와 기준일을 적는다. 확인 못 한 값은 "확인 필요"로 적고 사용자가 직접 입력하게 한다.
    해마다 바뀌는 값은 `src/_shared/<slug>.js` 맨 위 상수 한곳에 모으고 기준일 주석을 단다.
