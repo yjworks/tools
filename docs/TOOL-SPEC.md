@@ -92,7 +92,7 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
 - 난수: `import { randInt, rand, shuffle } from '../_shared/random.js'` (crypto 기반)
 - CSS 클래스: `.tool .row .field .drop .status(.ok/.warn/.bad) .out .muted button(.ghost/.small) ul.files table.preview .guide details .cards .card`
 - 이미 설치된 패키지: pdf-lib, three, fflate, qrcode-generator, jsqr, cfb, @shiguredo/rnnoise-wasm, mp4-muxer, occt-import-js, exceljs,
-  heic-to(LGPL-3.0: `import()` 로 따로 불러 별도 파일로 두고 고치지 않는다), pdfjs-dist, @mediapipe/tasks-vision, @huggingface/transformers
+  heic-to(LGPL-3.0: `import()` 로 따로 불러 별도 파일로 두고 고치지 않는다), pdfjs-dist, @mediapipe/tasks-vision
 - 새로 쓴 패키지는 `public/third-party-licenses.txt` 에 이름·버전·라이선스 전문을 더한다.
 
 ## 5. 원칙
