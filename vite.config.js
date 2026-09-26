@@ -77,7 +77,7 @@ ${ads}`;
 }
 
 const header = `<header class="site"><div class="wrap">
-<a class="brand" href="/"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="5.3" fill="#2f6fed"/><path fill="#fff" fill-rule="evenodd" d="M6.6 5.6H11.4a6.4 6.4 0 0 1 0 12.8H6.6Z M9.6 8.6H11.4a3.4 3.4 0 0 1 0 6.8H9.6Z"/></svg>DigitalBrain</a>
+<a class="brand" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="22" fill="#2f6fed"/><path fill="#fff" d="M25.5 24H40.5a3.5 3.5 0 0 1 3.5 3.5V68.5a3.5 3.5 0 0 1-3.5 3.5H25.5a3.5 3.5 0 0 1-3.5-3.5V27.5a3.5 3.5 0 0 1 3.5-3.5Z M49 23.2a24.8 24.8 0 0 1 0 49.6Z"/></svg>DigitalBrain</a>
 <nav><a href="/tools/">도구</a><a href="/">앱</a><a href="${cfg.blogUrl}">블로그</a></nav>
 </div></header>`;
 
