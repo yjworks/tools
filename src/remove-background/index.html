@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+  .seg button { flex: 1 1 auto; background: var(--accent-weak); color: var(--accent); min-height: 44px; }
+  .seg button[aria-pressed=true], .seg button[aria-selected=true] { background: var(--accent); color: #fff; }
+  .seg.tools button { flex: 1 1 0; min-width: 0; padding: 9px 8px; font-size: 14px; }
+  @media (max-width: 480px) { .seg.tools.four button { flex: 1 1 calc(50% - 3px); white-space: nowrap; } }
+  .dlbox { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin: 0 0 12px; background: var(--bg); }
+  .dlbox p { margin: 0 0 10px; font-size: 14.5px; }
+  .dlbox progress { width: 100%; height: 10px; accent-color: var(--accent); margin-top: 10px; }
+  .stage-wrap { display: flex; justify-content: center; margin: 0 0 10px; }
+  .stage { position: relative; max-width: 100%; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background-color: #fff; }
+  .stage.checker { background-image: linear-gradient(45deg, #e3e4e8 25%, transparent 25%), linear-gradient(-45deg, #e3e4e8 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e3e4e8 75%), linear-gradient(-45deg, transparent 75%, #e3e4e8 75%);
+    background-size: 18px 18px; background-position: 0 0, 0 9px, 9px -9px, -9px 0; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  #ghost { opacity: 0; transition: opacity .15s; }
+  .stage.ghosted #ghost { opacity: .32; }
+  #overlay { touch-action: manipulation; cursor: default; }
+  #overlay.tap { cursor: crosshair; }
+  #overlay.brush { touch-action: none; cursor: none; }
+  .busy { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--card) 55%, transparent);
+    font-weight: 700; font-size: 15px; color: var(--text); pointer-events: none; }
+  .hint { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); max-width: calc(100% - 20px); background: rgba(17, 19, 24, .78); color: #fff;
+    font-size: 13.5px; padding: 6px 12px; border-radius: 999px; pointer-events: none; text-align: center; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 12px 0; }
+  .opts input[type=range], .opts select { width: 100%; }
+  .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+  .swatches button { padding: 6px 10px 6px 6px; font-size: 13.5px; font-weight: 600; background: var(--bg); color: var(--text); border: 1px solid var(--line); min-height: 40px; }
+  .swatches button[aria-pressed=true] { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent) inset; }
+  .swatches i { width: 22px; height: 22px; border-radius: 6px; border: 1px solid rgba(0,0,0,.15); display: inline-block; flex: 0 0 auto; }
+  .swatches i.t { background: #fff linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%) 0 0 / 11px 11px,
+    linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%) 5.5px 5.5px / 11px 11px; }
+  .swatches input[type=color] { width: 40px; height: 40px; padding: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .field .val { color: var(--sub); font-weight: 500; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .actions button { flex: 1 1 140px; justify-content: center; }
+  .subrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 12px; }
+  .subrow label.field { flex: 1 1 160px; }
+  .subrow input[type=range] { width: 100%; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>AI 누끼 — 사진 배경 지우기</h1>
+  <p class="lede">사진 속 사람은 자동으로, 물건은 손가락으로 눌러 골라 배경을 지웁니다. 투명 PNG나 흰색·하늘색·회색 배경 사진으로 저장할 수 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" id="drop" tabindex="0">
+      <b>사진을 고르거나 여기로 끌어다 놓으세요</b>
+      <span class="muted">JPG·PNG·WebP · 사진은 이 기기 밖으로 나가지 않습니다</span>
+      <input type="file" accept="image/*" id="file">
+    </label>
+
+    <div id="work" hidden>
+      <div class="seg" role="tablist" aria-label="지울 방법">
+        <button role="tab" id="modePortrait" aria-selected="true">👤 사람 자동</button>
+        <button role="tab" id="modeObject" aria-selected="false">👆 물건 눌러 고르기</button>
+      </div>
+
+      <div class="dlbox" id="dlBox" hidden>
+        <p id="dlText"></p>
+        <button id="dlBtn">받고 시작</button>
+        <progress id="dlProg" max="1" value="0" hidden></progress>
+        <p class="muted" id="dlNum" style="margin:6px 0 0"></p>
+      </div>
+
+      <div class="seg tools" id="tools" aria-label="편집 도구">
+        <button id="toolView" aria-pressed="true" title="움직이지 않고 보기">✋ 보기</button>
+        <button id="toolTap" aria-pressed="false" hidden>👆 물건 추가</button>
+        <button id="toolErase" aria-pressed="false">🧽 지우기 붓</button>
+        <button id="toolRestore" aria-pressed="false">🖌️ 복원 붓</button>
+      </div>
+
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage checker" id="stage">
+          <canvas id="ghost" aria-hidden="true"></canvas>
+          <canvas id="after" aria-label="배경을 지운 결과 미리보기"></canvas>
+          <canvas id="before" aria-hidden="true"></canvas>
+          <canvas id="overlay" aria-hidden="true"></canvas>
+          <div class="busy" id="busy" hidden>처리하는 중…</div>
+          <div class="hint" id="hint" hidden></div>
+        </div>
+      </div>
+
+      <div class="subrow">
+        <label class="field">원본과 비교 <span class="val" id="cmpVal">왼쪽으로 밀면 결과만</span>
+          <input type="range" id="cmp" min="0" max="100" value="0" aria-label="원본 비교 위치">
+        </label>
+        <label class="field" id="brushBox" hidden>붓 크기 <span class="val" id="brushVal"></span>
+          <input type="range" id="brush" min="1" max="15" value="4">
+        </label>
+      </div>
+      <div class="row">
+        <button class="ghost small" id="undo" disabled>↶ 되돌리기</button>
+        <button class="ghost small" id="reset" disabled>처음 결과로</button>
+        <span class="muted" id="taps"></span>
+      </div>
+
+      <div class="opts">
+        <label class="field">가장자리 부드럽게 <span class="val" id="softVal">3</span>
+          <input type="range" id="soft" min="0" max="10" value="3">
+        </label>
+        <label class="field">비율 자르기
+          <select id="ratio">
+            <option value="orig">원본 그대로</option>
+            <option value="3:4">3:4 반명함 비율</option>
+            <option value="35:45">35:45 (35×45mm)</option>
+            <option value="1:1">1:1 프로필</option>
+          </select>
+        </label>
+        <label class="field" id="zoomBox" hidden>자르기 확대 <span class="val" id="zoomVal">100%</span>
+          <input type="range" id="zoom" min="100" max="300" step="5" value="100">
+        </label>
+      </div>
+      <div class="field" style="margin:0 0 14px">배경
+        <div class="swatches" id="bgs">
+          <button data-bg="none" aria-pressed="true"><i class="t"></i>투명</button>
+          <button data-bg="white" aria-pressed="false"><i style="background:#ffffff"></i>흰색</button>
+          <button data-bg="sky" aria-pressed="false"><i style="background:#cfe3f6"></i>하늘색</button>
+          <button data-bg="gray" aria-pressed="false"><i style="background:#d7d9dc"></i>회색</button>
+          <button data-bg="custom" aria-pressed="false"><i id="customChip" style="background:#1f2937"></i>직접</button>
+          <input type="color" id="customColor" value="#1f2937" aria-label="배경 색 직접 고르기" hidden>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="savePng" disabled>투명 PNG 저장</button>
+        <button id="saveJpg" class="ghost" disabled>JPG 저장</button>
+        <button id="another" class="ghost">다른 사진</button>
+      </div>
+      <p class="muted" id="outInfo" style="margin:8px 0 0"></p>
+    </div>
+    <p class="status" id="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>사진을 고릅니다. 사람이 나온 사진이면 <b>사람 자동</b>, 상품·반려동물·그릇처럼 사람이 아닌 것이면 <b>물건 눌러 고르기</b>를 누릅니다.</li>
+      <li>처음 한 번은 인식 모델을 받습니다. 받을 크기를 먼저 보여 드리고, <b>받고 시작</b>을 눌러야 받습니다. 그다음부터는 이 기기에 저장된 모델을 씁니다.</li>
+      <li>물건 모드에서는 남기고 싶은 물건 위를 한 번 누릅니다. 물건이 여러 개면 <b>물건 추가</b>로 하나씩 더 누르세요.</li>
+      <li>덜 지워진 곳은 <b>지우기 붓</b>으로 문지르고, 잘못 지워진 곳은 <b>복원 붓</b>으로 되살립니다. 붓을 쓰는 동안 지운 곳은 흐리게 비쳐 보입니다.</li>
+      <li>배경을 투명·흰색·하늘색·회색 중에서 고르고, 필요하면 3:4 같은 비율로 자른 뒤 <b>PNG</b>나 <b>JPG</b>로 저장합니다.</li>
+    </ol>
+    <p><b>원본과 비교</b> 막대를 오른쪽으로 밀면 왼쪽부터 원래 사진이 드러나 경계가 어떻게 잘렸는지 나란히 볼 수 있습니다.</p>
+
+    <h2>배경을 어떻게 구분하나요</h2>
+    <p>구글이 공개한 MediaPipe 영상 인식 모델 두 가지를 이 브라우저 안에서 돌립니다.</p>
+    <ul>
+      <li><b>사람 자동</b>: 사진을 256×256 크기로 줄여 화소마다 배경·머리카락·얼굴 피부·몸 피부·옷·장신구 중 무엇인지 확률을 냅니다. 배경일 확률을 뺀 나머지를 남길 부분으로 씁니다.</li>
+      <li><b>물건 눌러 고르기</b>: 누른 점을 실마리로 그 점이 속한 물체의 윤곽을 찾는 모델입니다. 무엇을 남길지 사람이 알려 줘야 하므로, 누르기 전에는 아무것도 지우지 않습니다.</li>
+    </ul>
+    <p>모델이 내놓는 윤곽은 작은 해상도라 경계가 뭉개져 있습니다. 그래서 원본 사진의 밝기 변화를 기준으로 경계를 다시 맞추는 <b>가이드 필터</b>를 거친 뒤, 결과를 원본 크기로 늘립니다. 반쯤 투명한 가장자리 화소에는 원래 배경색이 섞여 있어 테두리가 비치기 쉬운데, 저장할 때 그 화소의 색을 바로 안쪽 물체 색 쪽으로 옮겨 번짐을 줄입니다. <b>가장자리 부드럽게</b>를 0에 두면 윤곽이 칼로 자른 듯 또렷해지고, 올릴수록 테두리가 서서히 사라집니다.</p>
+    <p>추론과 편집은 긴 변 1536px로 줄인 사본에서 하고, 저장할 때만 원본 해상도(긴 변 최대 4096px)에 맞춥니다. 휴대폰에서도 멈추지 않게 하려는 선택입니다.</p>
+
+    <h3>잘 안 되는 사진</h3>
+    <ul>
+      <li><b>잔머리·털</b>: 한 올 한 올까지는 따라가지 못해 머리카락 바깥쪽이 뭉툭해지거나 배경이 조금 남습니다. 가장자리 부드럽게를 조금 올리면 덜 어색합니다.</li>
+      <li><b>유리컵·비닐·안경알</b>처럼 비치는 물체는 뒤 배경까지 물체로 보거나 통째로 지우기도 합니다. 붓으로 손봐야 합니다.</li>
+      <li><b>배경과 색이 비슷한 옷·물건</b>, 어두운 곳에서 찍어 윤곽이 흐린 사진은 경계가 안쪽으로 파이거나 밖으로 번집니다.</li>
+      <li>컵 손잡이 안쪽이나 팔과 몸 사이처럼 <b>물체에 둘러싸인 작은 틈</b>은 배경인데도 물체로 채워지는 일이 많습니다. 지우기 붓으로 틈을 문질러 주세요.</li>
+      <li><b>사람 자동</b>은 사람만 찾습니다. 사람이 안고 있는 인형이나 들고 있는 가방은 배경으로 볼 수 있으니 복원 붓으로 살리세요.</li>
+      <li>여러 사람이 나온 사진은 모두 남깁니다. 한 사람만 남기려면 나머지를 지우기 붓으로 지웁니다.</li>
+    </ul>
+
+    <h2>증명사진 배경과 비율</h2>
+    <p>배경을 흰색·하늘색·회색으로 바꾸고 3:4나 35:45 비율로 잘라 증명사진처럼 쓸 수 있게 해 둔 기능입니다. 자르기는 인물의 머리 위에 약간의 여백을 두고 가운데를 맞춥니다. 다만 여권·운전면허·자격증 사진은 기관마다 얼굴 크기, 여백, 조명, 배경 색, 보정 허용 범위 같은 조건이 따로 있습니다. 이 도구는 <b>비율과 배경 색만</b> 맞춰 주므로, 제출하기 전에 해당 기관의 사진 기준을 꼭 확인하세요.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>사진이 서버로 올라가나요?</summary>
+      <p>아니요. 인터넷으로 받는 것은 인식 모델 파일(처음 한 번)뿐이고, 사진은 이 브라우저 안에서만 읽고 처리합니다. 인식 라이브러리(MediaPipe)가 기본으로 보내는 사용 통계(작업 종류·처리 시간) 전송도 막아 두었습니다. 모델을 받은 뒤에는 비행기 모드에서도 쓸 수 있습니다.</p></details>
+    <details><summary>처음에 받는 파일은 얼마나 되나요?</summary>
+      <p>인식 엔진이 약 11MB, 사람 모델이 약 16MB, 물건 모델이 약 6MB입니다. 쓰는 모드의 파일만 받고, 받은 뒤에는 기기에 저장해 다시 받지 않습니다. 브라우저 데이터를 지우면 다음에 한 번 더 받습니다.</p></details>
+    <details><summary>아이폰 HEIC 사진이 열리지 않아요.</summary>
+      <p>HEIC를 직접 여는 브라우저가 많지 않습니다. 열리지 않으면 HEIC는 <a href="../heic-to-jpg/">'HEIC → JPG' 도구</a>로 먼저 바꿔 주세요. 아이폰 설정 → 카메라 → 포맷에서 '높은 호환성'을 고르면 처음부터 JPG로 찍힙니다.</p></details>
+    <details><summary>저장한 PNG를 열면 배경이 검거나 하얗게 보여요.</summary>
+      <p>투명한 부분을 어떤 색으로 보여 줄지는 보는 프로그램이 정합니다. 파워포인트·캔바·포토샵 같은 편집 프로그램에 넣으면 뒤의 색이나 사진이 비쳐 보입니다. 카카오톡 프로필처럼 투명을 지원하지 않는 곳에 쓸 때는 배경 색을 골라 JPG로 저장하세요.</p></details>
+    <details><summary>상품 사진 여러 장을 한 번에 처리할 수 있나요?</summary>
+      <p>지금은 한 장씩 처리합니다. 물건 모드는 사진마다 남길 물건을 직접 눌러야 해서, 한 장씩 확인하며 저장하는 방식으로 만들었습니다.</p></details>
+    <details><summary>저장한 사진의 크기는 얼마인가요?</summary>
+      <p>원본 해상도 그대로 저장하되, 긴 변이 4096px를 넘으면 4096px로 줄입니다. 비율 자르기를 고르면 자른 영역의 크기가 됩니다. 저장 버튼 아래에 실제 저장될 크기를 표시합니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

@@ -58,7 +58,7 @@ const unsupported = !navigator.mediaDevices?.getUserMedia ? '이 브라우저는
 if (unsupported) { const u = $('#unsupported'); u.textContent = unsupported; u.hidden = false; btn.start.disabled = true; }
 
 const wasmName = { simd: 'vision_wasm_internal', nosimd: 'vision_wasm_nosimd_internal' };
-const WASM_BASE = new URL('../mediapipe/wasm/', location.href).href;
+const WASM_BASE = new URL('../mediapipe/1.0.1/', location.href).href;
 (async () => {
   const total = MODEL.bytes + WASM_BYTES.simd;
   let cached = false;

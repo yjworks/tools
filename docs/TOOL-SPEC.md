@@ -103,6 +103,9 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
    예외는 **받기만 하는** 정적 파일: AI 모델·wasm 을 `storage.googleapis.com`(MediaPipe), `huggingface.co`, `cdn.jsdelivr.net` 에서 받는 것.
    처음 받기 전에 크기를 알리고 진행률을 보여 준다. 사용자의 사진·소리·글은 어떤 경우에도 올리지 않는다.
    5MB 이하 모델은 `public/<slug>/models/` 에 넣어도 된다(저장소 파일 하나 50MB 넘기지 않기).
+   MediaPipe 엔진 wasm 은 `public/mediapipe/<tasks-vision 버전>/` 하나를 같이 쓴다. 패키지를 올리면 새 버전 폴더를 만들고
+   코드의 경로를 바꾼다(옛 폴더 이름을 재사용하면 방문자 캐시에 옛 엔진이 남는다).
+   tasks-vision 은 Google 로 사용 통계를 보내므로(odml.pa.googleapis.com) 페이지 맨 위에서 막는다(remove-background·posture-alert 참고).
 2. **추측 금지.** 법정 요율·공휴일·기준금리 같은 사실은 공식 출처(법령, 정부·공공기관 발표)로 확인한 값만 쓰고,
    글 안에 출처와 기준일을 적는다. 확인 못 한 값은 "확인 필요"로 적고 사용자가 직접 입력하게 한다.
    해마다 바뀌는 값은 `src/_shared/<slug>.js` 맨 위 상수 한곳에 모으고 기준일 주석을 단다.

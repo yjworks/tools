@@ -11,7 +11,7 @@ export const MODEL = {
   url: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
   bytes: 5777746,
 };
-/** public/mediapipe/wasm 의 파일 크기(@mediapipe/tasks-vision 1.0.1). 받기 전 안내용. */
+/** public/mediapipe/1.0.1 의 파일 크기(@mediapipe/tasks-vision 1.0.1). 받기 전 안내용. */
 export const WASM_BYTES = { simd: 11756954, nosimd: 10960242 };
 
 /** BlazePose 33점 중 쓰는 점. 사람 기준 왼쪽/오른쪽이다. */

@@ -125,7 +125,7 @@ function toolList(tools) {
 }
 
 /* 설치형 도구의 서비스 워커. 페이지는 네트워크 먼저(새 배포가 바로 보이게), 나머지는 캐시 먼저.
-   AI 모델처럼 큰 파일(/models/ 경로 또는 모델 저장소 호스트)은 배포가 바뀌어도 지우지 않는 별도 캐시에 둔다.
+   AI 모델처럼 큰 파일(/models/ 경로, /mediapipe/<버전>/ 엔진, 모델 저장소 호스트)은 배포가 바뀌어도 지우지 않는 별도 캐시에 둔다.
    광고·통계 요청은 건드리지 않는다. */
 function swSource(slug) {
   return `/* ${slug} — scripts 가 빌드 때 만든 파일. 직접 고치지 말 것 (vite.config.js swSource). */
@@ -149,7 +149,7 @@ self.addEventListener('fetch', (e) => {
       .catch(() => caches.match('./')));
     return;
   }
-  const model = MODEL_HOST.test(u.host) || (u.origin === location.origin && u.pathname.includes('/models/'));
+  const model = MODEL_HOST.test(u.host) || (u.origin === location.origin && (u.pathname.includes('/models/') || u.pathname.includes('/mediapipe/')));
   if (!model && u.origin !== location.origin) return;
   const name = model ? MODELS : CACHE;
   e.respondWith(caches.open(name).then((c) => c.match(r).then((hit) => hit || fetch(r).then((res) => {
