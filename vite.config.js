@@ -83,7 +83,7 @@ ${ads}`;
 
 const header = `<header class="site"><div class="wrap">
 <a class="brand" href="/"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="22" fill="#2f6fed"/><path fill="#fff" d="M25.5 24H40.5a3.5 3.5 0 0 1 3.5 3.5V68.5a3.5 3.5 0 0 1-3.5 3.5H25.5a3.5 3.5 0 0 1-3.5-3.5V27.5a3.5 3.5 0 0 1 3.5-3.5Z M49 23.2a24.8 24.8 0 0 1 0 49.6Z"/></svg>DigitalBrain</a>
-<nav><a href="/tools/">도구</a><a href="/">앱</a><a href="${cfg.blogUrl}">블로그</a></nav>
+<nav><a href="/#apps">앱</a><a href="/tools/">도구</a><a href="${cfg.blogUrl}">블로그</a></nav>
 </div></header>`;
 
 /* 기록을 저장하는 도구(meta.json "storage": 키 접두사 목록)는 맨 아래에 '기록 전체 삭제'를 둔다.
