@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .pa-note { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14.5px; margin: 0 0 14px; }
+  .pa-note b { color: var(--text); }
+  .pa-note p { margin: 0 0 6px; }
+  .pa-note p:last-child { margin: 0; }
+  .pa-stage { position: relative; background: #0b0d10; border-radius: 12px; overflow: hidden; margin: 0 0 12px; aspect-ratio: 4 / 3; max-height: 56vh; width: 100%; }
+  .pa-stage video, .pa-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; transform: scaleX(-1); }
+  .pa-stage .pa-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; color: #b8bcc6; padding: 16px; font-size: 14.5px; }
+  .pa-stage .pa-count { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 84px; font-weight: 800; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.6); pointer-events: none; }
+  .pa-chip { position: absolute; left: 10px; top: 10px; display: inline-flex; align-items: center; gap: 7px; background: rgba(0,0,0,.62); color: #fff; font-weight: 700;
+    padding: 4px 11px; border-radius: 999px; font-size: 14px; max-width: calc(100% - 20px); }
+  .pa-dot { width: 10px; height: 10px; border-radius: 50%; background: #9aa0aa; flex: 0 0 auto; }
+  .pa-chip.good .pa-dot { background: #34d399; } .pa-chip.bad .pa-dot { background: #fbbf24; } .pa-chip.alert .pa-dot { background: #f87171; }
+  .pa-progress { height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; margin: 6px 0 0; }
+  .pa-progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  .pa-live { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; margin: 0 0 12px; }
+  .pa-live .big { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+  .pa-meter { grid-column: 1 / -1; position: relative; height: 10px; border-radius: 999px; background: linear-gradient(90deg, #34d399 0 43.75%, #fbbf24 43.75% 62.5%, #f87171 62.5%); opacity: .9; }
+  .pa-meter i { position: absolute; top: -4px; width: 4px; height: 18px; border-radius: 2px; background: var(--text); left: 0; transform: translateX(-2px); transition: left .3s; }
+  .pa-banner { position: sticky; top: 8px; z-index: 5; box-shadow: 0 4px 14px rgba(0,0,0,.12); display: flex; gap: 10px; align-items: flex-start; border-radius: 12px; padding: 12px 14px; margin: 0 0 12px; font-weight: 600;
+    background: color-mix(in srgb, var(--warn) 14%, var(--card)); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); color: var(--text); }
+  .pa-banner.rest { background: color-mix(in srgb, var(--ok) 12%, var(--card)); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .pa-banner span { flex: 1; min-width: 0; }
+  .pa-banner button { flex: 0 0 auto; }
+  .pa-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 4px 0 12px; }
+  .pa-opts select, .pa-opts input[type=range] { width: 100%; }
+  .pa-checks { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; }
+  .pa-check { display: inline-flex; align-items: center; gap: 7px; font-size: 14.5px; cursor: pointer; }
+  .pa-check input { width: 18px; height: 18px; }
+  details.pa-set { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; margin: 12px 0 0; }
+  details.pa-set summary { font-weight: 700; cursor: pointer; }
+  .pa-stats { margin: 18px 0 0; border-top: 1px solid var(--line); padding-top: 14px; }
+  .pa-stats h3 { margin: 0 0 10px; font-size: 16px; }
+  .pa-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0 0 14px; }
+  .pa-kpi { background: var(--bg); border-radius: 10px; padding: 10px; min-width: 0; }
+  .pa-kpi small { display: block; color: var(--sub); font-size: 12.5px; }
+  .pa-kpi b { font-size: 20px; font-variant-numeric: tabular-nums; }
+  .pa-bars { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; align-items: end; height: 90px; border-bottom: 1px solid var(--line); }
+  .pa-bar { display: flex; flex-direction: column-reverse; height: 100%; min-width: 0; }
+  .pa-bar i { display: block; width: 100%; }
+  .pa-bar .g { background: var(--ok); border-radius: 0 0 2px 2px; } .pa-bar .b { background: var(--warn); border-radius: 2px 2px 0 0; }
+  .pa-axis { display: grid; grid-template-columns: repeat(4, 1fr); font-size: 11.5px; color: var(--sub); margin: 3px 0 8px; }
+  .pa-legend { display: flex; gap: 14px; font-size: 13px; color: var(--sub); flex-wrap: wrap; }
+  .pa-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  @media (max-width: 520px) {
+    .pa-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pa-stage .pa-count { font-size: 64px; }
+  }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>거북목 알리미 — 웹캠 자세 알림</h1>
+  <p class="lede">바른 자세를 한 번 기준으로 잡아 두면, 웹캠으로 고개 위치를 가끔씩 살펴 기준에서 오래 벗어났을 때 소리·화면으로 알려 드립니다. 원하면 일정 시간마다 쉬어 가라는 알림도 받을 수 있습니다.</p>
+  <p class="badge-local">🔒 영상 저장·전송 없음 · 이 기기 안에서만 분석</p>
+
+  <section class="tool" id="tool">
+    <p class="status bad" id="unsupported" hidden></p>
+
+    <div class="pa-banner" id="banner" role="alert" hidden><span id="bannerText"></span><button class="small ghost" id="bannerClose" type="button">닫기</button></div>
+
+    <div class="pa-note" id="intro">
+      <p><b>카메라 영상은 저장하지도, 어디로 보내지도 않습니다.</b> 이 탭 안에서 몇 개의 점(눈·귀·어깨 위치)만 계산하고 바로 버립니다. 이 기기에 남는 것은 오늘의 기록(시간·횟수)뿐입니다.</p>
+      <p id="dlNote">처음 시작할 때 자세 인식 모델과 실행 파일을 한 번 받습니다.</p>
+      <p class="muted" style="margin:0">이 도구는 자세를 알려 주는 알림일 뿐, 의료기기가 아니며 건강 상태를 판단하지 않습니다.</p>
+    </div>
+
+    <div class="pa-stage" id="stage" hidden>
+      <div class="pa-ph" id="placeholder">카메라를 켜는 중입니다.<br>브라우저가 카메라 권한을 물으면 허용해 주세요.</div>
+      <video id="video" muted playsinline autoplay hidden></video>
+      <canvas id="overlay" hidden></canvas>
+      <div class="pa-count" id="count" hidden></div>
+      <div class="pa-chip" id="chip" hidden><span class="pa-dot"></span><span id="chipText"></span></div>
+    </div>
+
+    <div id="loadBox" hidden>
+      <div class="muted" id="loadText">준비 중…</div>
+      <div class="pa-progress"><i id="loadBar"></i></div>
+    </div>
+
+    <div class="pa-live" id="live" hidden>
+      <div class="big" id="liveTitle">바른 자세</div>
+      <div class="muted" id="liveSub"></div>
+      <div class="pa-meter" title="기준에서 벗어난 정도"><i id="meter"></i></div>
+    </div>
+
+    <div class="row">
+      <button id="start" type="button">시작하기</button>
+      <button id="calib" type="button" hidden>기준 잡기 (3초)</button>
+      <button id="useSaved" class="ghost" type="button" hidden>지난 기준으로 시작</button>
+      <button id="pip" class="ghost" type="button" hidden>작은 창으로 띄우기</button>
+      <button id="pause" class="ghost" type="button" hidden>잠시 멈춤</button>
+      <button id="recalib" class="ghost small" type="button" hidden>기준 다시 잡기</button>
+      <button id="stop" class="ghost small" type="button" hidden>끄기</button>
+    </div>
+    <p class="status" id="status"></p>
+    <p class="muted" id="bgNote"></p>
+
+    <details class="pa-set" id="settings">
+      <summary>알림 설정</summary>
+      <div class="pa-opts" style="margin-top:12px">
+        <label class="field">민감도
+          <select id="sens"><option value="low">낮음 (크게 벗어날 때만)</option><option value="mid">보통</option><option value="high">높음 (조금만 벗어나도)</option></select></label>
+        <label class="field">알리기 전 기다리는 시간
+          <select id="hold"><option value="5">5초</option><option value="10">10초</option><option value="15">15초</option><option value="30">30초</option><option value="60">1분</option></select></label>
+        <label class="field">다시 알리는 간격
+          <select id="cool"><option value="30">30초</option><option value="60">1분</option><option value="180">3분</option><option value="300">5분</option></select></label>
+        <label class="field">휴식 알림
+          <select id="brk"><option value="0">끔</option><option value="20">20분마다</option><option value="30">30분마다</option><option value="45">45분마다</option><option value="60">60분마다</option></select></label>
+        <label class="field">확인 빈도
+          <select id="fps"><option value="1">초당 1번 (배터리 절약)</option><option value="2">초당 2번</option><option value="4">초당 4번</option></select></label>
+        <label class="field">소리 크기 <span id="volText" class="muted"></span>
+          <input type="range" id="vol" min="0" max="100" step="5"></label>
+      </div>
+      <div class="pa-checks">
+        <label class="pa-check"><input type="checkbox" id="vib">진동 (지원하는 기기만)</label>
+        <label class="pa-check"><input type="checkbox" id="wake">쓰는 동안 화면 꺼짐 막기</label>
+        <label class="pa-check"><input type="checkbox" id="dots">화면에 인식한 점 표시</label>
+      </div>
+      <div class="row">
+        <button class="ghost small" id="testSound" type="button">소리 들어 보기</button>
+        <button class="ghost small" id="notif" type="button">알림 창 허용하기</button>
+        <span class="muted" id="notifText"></span>
+      </div>
+    </details>
+
+    <div class="pa-stats" id="stats">
+      <h3>오늘 기록 <span class="muted" style="font-weight:400">· 이 기기에만 저장</span></h3>
+      <div class="pa-kpis">
+        <div class="pa-kpi"><small>확인한 시간</small><b id="kMin">0분</b></div>
+        <div class="pa-kpi"><small>바른 자세 비율</small><b id="kPct">–</b></div>
+        <div class="pa-kpi"><small>자세 알림</small><b id="kAlert">0회</b></div>
+        <div class="pa-kpi"><small>휴식 알림</small><b id="kBreak">0회</b></div>
+      </div>
+      <div class="pa-bars" id="bars" role="img" aria-label="시간대별 확인 시간"></div>
+      <div class="pa-axis"><span>0시</span><span>6시</span><span>12시</span><span>18시</span></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="pa-legend"><span><i style="background:var(--ok)"></i>바른 자세</span><span><i style="background:var(--warn)"></i>기준에서 벗어남</span></div>
+        <button class="ghost small" id="clearStats" type="button">오늘 기록 지우기</button>
+      </div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li><b>시작하기</b>를 누르고 카메라 권한을 허용합니다. 처음 한 번은 자세 인식 모델을 받는 동안 잠시 기다려 주세요.</li>
+      <li>화면을 편하게 바라보며 <b>바르다고 생각하는 자세</b>로 앉습니다. 머리와 두 어깨가 화면에 보여야 합니다.</li>
+      <li><b>기준 잡기</b>를 누르고 3초 동안 가만히 있습니다. 이 자세가 앞으로 비교할 기준이 됩니다.</li>
+      <li>이제 평소처럼 일하시면 됩니다. 기준에서 벗어난 채로 정한 시간(기본 15초)이 지나면 소리와 화면 안내로 알려 드립니다. 자세를 고쳐 앉으면 안내는 저절로 사라집니다.</li>
+      <li>다른 창에서 일할 때는 <b>작은 창으로 띄우기</b>를 눌러 두세요(데스크톱 크롬·엣지). 브라우저 탭이 가려지면 확인이 느려지거나 멈출 수 있기 때문입니다.</li>
+      <li>알림 창(시스템 알림)을 받고 싶으면 <b>알림 설정 → 알림 창 허용하기</b>를 누릅니다. 다른 창을 보고 있을 때만 알림 창이 뜹니다.</li>
+    </ol>
+    <p>의자 높이나 노트북 위치를 바꿨다면 <b>기준 다시 잡기</b>를 눌러 주세요. 기준은 카메라 위치에 따라 달라집니다.</p>
+
+    <h2>어떻게 판단하나요</h2>
+    <p>구글이 공개한 MediaPipe 자세 인식 모델(Pose Landmarker lite)이 카메라 화면에서 눈·귀·코·어깨 같은 몸의 점 위치를 찾습니다. 이 도구는 그 가운데 몇 개의 점만 써서, 기준을 잡을 때와 지금을 아래 다섯 가지로 비교합니다.</p>
+    <table>
+      <tr><th>항목</th><th>보는 것</th><th>이렇게 되면 벗어남</th></tr>
+      <tr><td>고개 높이</td><td>눈과 어깨 사이 높이 ÷ 어깨 폭</td><td>기준보다 낮아짐(고개를 숙이거나 몸이 처짐)</td></tr>
+      <tr><td>고개 앞으로</td><td>양쪽 귀 사이 폭 ÷ 어깨 폭</td><td>커짐(머리만 카메라 쪽으로 나옴)</td></tr>
+      <tr><td>화면과의 거리</td><td>화면 속 귀 사이 폭</td><td>커짐(몸 전체가 화면에 다가감)</td></tr>
+      <tr><td>고개 기울기</td><td>두 눈을 이은 선의 각도</td><td>기준과 각도 차이가 큼</td></tr>
+      <tr><td>몸 기울기</td><td>어깨 가운데와 눈 가운데의 가로 차이</td><td>한쪽으로 크게 비킴</td></tr>
+    </table>
+    <p>어깨 폭으로 나누어 비교하기 때문에, 카메라와의 거리가 조금 달라져도 같은 자세면 비슷한 값이 나옵니다. 각 항목이 민감도에 정한 폭(예: 보통에서 고개 높이 17%)을 넘으면 "벗어남"으로 보고, 그 상태가 정한 시간 동안 이어질 때만 알립니다. 잠깐 고개를 숙여 메모하는 정도로는 알리지 않도록, 조금 돌아온 정도로는 "벗어남"이 풀리지 않게(되돌아올 때 기준을 더 엄격하게) 해 두었습니다. 알린 뒤에는 정한 간격 동안 다시 알리지 않습니다.</p>
+    <p>확인은 초당 1~4번만 합니다. 동영상처럼 매 장면을 분석하지 않아 배터리와 CPU를 덜 씁니다.</p>
+    <h3>한계</h3>
+    <ul>
+      <li><b>정면 카메라의 한계</b>: 노트북 카메라는 앞에서 보기 때문에 고개가 앞으로 나온 정도를 옆에서 재듯 정확히 잴 수 없습니다. 얼굴 크기와 고개 높이의 변화로 짐작하는 방식입니다.</li>
+      <li><b>조명</b>: 너무 어둡거나 뒤에 창문이 있어 얼굴이 검게 나오면 점을 잘 못 찾습니다. 얼굴 쪽에 빛이 오게 해 주세요.</li>
+      <li><b>카메라 각도</b>: 카메라가 아주 아래(휴대폰을 책상에 눕힘)나 위에 있으면 기준 자체가 달라집니다. 기준을 잡은 뒤에는 카메라를 움직이지 마세요.</li>
+      <li><b>안경·머리카락·마스크</b>: 귀가 가려지면 모델이 위치를 추정하므로 값이 조금 흔들릴 수 있습니다. 흔들림이 잦으면 민감도를 낮춰 보세요.</li>
+      <li><b>여러 명</b>: 한 사람만 봅니다. 화면에 다른 사람이 들어오면 그 사람을 볼 수도 있습니다.</li>
+      <li>자세의 좋고 나쁨을 의학적으로 판단하지 않습니다. 처음에 잡은 기준에서 얼마나 달라졌는지만 봅니다.</li>
+    </ul>
+
+    <h2>다른 창에서 쓰기와 휴식 알림</h2>
+    <p>브라우저는 배터리를 아끼려고 보이지 않는 탭의 작업을 늦추거나 멈춥니다. 그래서 다음처럼 쓰시는 것이 좋습니다.</p>
+    <ul>
+      <li><b>데스크톱 크롬·엣지</b>: <b>작은 창으로 띄우기</b>를 누르면 항상 위에 떠 있는 작은 창에 카메라와 상태가 나오고, 다른 프로그램을 쓰는 동안에도 확인이 이어집니다.</li>
+      <li><b>데스크톱 사파리</b>: 카메라 화면을 화면 속 화면(PiP)으로 띄울 수 있습니다. 다만 브라우저 사정에 따라 확인이 느려질 수 있습니다.</li>
+      <li><b>파이어폭스</b>: 페이지에서 작은 창을 여는 기능이 없습니다. 이 탭을 따로 창으로 떼어 화면 한쪽에 보이게 두세요.</li>
+      <li><b>휴대폰·태블릿</b>: 화면이 꺼지거나 다른 앱으로 가면 멈춥니다. 거치대에 세워 이 화면을 켜 둔 채로 쓰세요. "화면 꺼짐 막기"를 켜면 쓰는 동안 화면이 꺼지지 않습니다.</li>
+    </ul>
+    <p>휴식 알림은 자세와 상관없이, 자리에 앉아 있던 시간이 정한 분(20~60분)에 이르면 한 번 알려 줍니다. 3분 넘게 자리를 비우면 쉬고 온 것으로 보고 처음부터 셉니다. 화면을 오래 볼 때는 틈틈이 먼 곳을 보며 쉬는 것이 좋다고 알려져 있고, 흔히 "20-20-20"(20분마다 6m쯤 떨어진 곳을 20초 바라보기) 방법이 소개됩니다. 몸이 불편하거나 통증이 이어지면 이 도구에 기대지 말고 전문가와 상담하세요.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>카메라 영상이 저장되거나 서버로 가나요?</summary>
+      <p>아니요. 영상은 이 탭 안에서 자세 인식 모델에 넣고 바로 버립니다. 녹화하지 않고, 사진도 남기지 않으며, 어떤 서버로도 보내지 않습니다. 기기에 저장되는 것은 설정, 기준 자세의 숫자 몇 개, 그리고 오늘의 기록(시간·횟수)뿐이며 모두 이 브라우저의 저장 공간(localStorage)에 있습니다. 이 도구가 인터넷에서 받는 것은 처음 한 번의 모델·실행 파일뿐이고, 자세 인식 라이브러리에 들어 있는 사용 통계 보내기(처리 속도 등)도 이 페이지에서 막아 두었습니다.</p></details>
+    <details><summary>다른 창에서 일해도 알려 주나요?</summary>
+      <p>데스크톱 크롬·엣지에서 <b>작은 창으로 띄우기</b>를 켜 두면 됩니다. 작은 창 없이 탭만 뒤로 보내면 브라우저가 확인 속도를 크게 늦출 수 있어 알림이 늦거나 오지 않을 수 있습니다. 그 경우 탭으로 돌아왔을 때 안내 문구로 알려 드립니다.</p></details>
+    <details><summary>휴대폰에서도 되나요?</summary>
+      <p>됩니다. 다만 휴대폰 브라우저는 화면이 꺼지거나 다른 앱을 열면 카메라와 확인을 멈춥니다. 휴대폰을 거치대에 세워 전면 카메라로 머리와 어깨가 보이게 두고, 이 화면을 켜 둔 채로 쓰시는 방식만 됩니다. 확인 빈도를 초당 1번으로 낮추면 배터리를 덜 씁니다.</p></details>
+    <details><summary>알림이 너무 자주(또는 너무 안) 와요.</summary>
+      <p>먼저 기준을 다시 잡아 보세요. 기준을 잡을 때 평소보다 꼿꼿하게 앉았다면 알림이 잦아집니다. 그래도 잦으면 민감도를 낮추거나 기다리는 시간을 늘리고, 반대로 너무 안 오면 민감도를 높이세요. 화면 아래 막대는 지금 기준에서 얼마나 벗어났는지 보여 주므로 조정할 때 참고하시면 됩니다.</p></details>
+    <details><summary>홈 화면이나 바탕화면에 설치할 수 있나요?</summary>
+      <p>주소창의 설치 버튼(또는 휴대폰 브라우저 메뉴의 "홈 화면에 추가")으로 설치할 수 있습니다. 설치하면 브라우저 탭이 아닌 별도 창으로 열립니다. 한 번 받은 모델은 기기에 남아 있어 다음부터는 빨리 시작합니다. 설치해도 카메라 영상을 다루는 방식은 똑같습니다.</p></details>
+    <details><summary>안경을 쓰거나 머리가 길어도 되나요?</summary>
+      <p>대부분 됩니다. 모델은 가려진 귀의 위치도 추정하지만 값이 조금 흔들릴 수 있습니다. 화면에 인식한 점 표시를 켜서 점이 눈·귀·어깨에 잘 붙는지 확인해 보세요.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>
