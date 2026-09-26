@@ -1,0 +1,29 @@
+name: Test and build
+
+# 배포는 여기서 하지 않는다. dibrain.dev 전체(/tools/ 포함)는 블로그 저장소(yjworks/yjworks.github.io)의
+# 워크플로가 이 저장소의 main 을 30분마다 확인해 빌드하고 Cloudflare Pages 에 올린다.
+# 이 워크플로는 push 마다 테스트와 빌드가 깨지지 않았는지만 본다.
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Test
+        run: npm test
+      - name: Build
+        run: npm run build
