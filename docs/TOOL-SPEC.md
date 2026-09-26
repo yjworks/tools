@@ -35,10 +35,20 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
 
   "pwa": true,            // 선택. 홈 화면 설치 + 오프라인. 켜면 아래 '설치형 앱' 규칙을 따른다
   "shortName": "누끼",     // 선택. 홈 화면 아이콘 밑 이름(6자 안팎)
-  "storage": ["focus-timer:"],   // 기기에 기록을 저장하면 필수. localStorage 키 접두사 목록 → 맨 아래 '기록 전체 삭제'
+  "storage": ["focus-timer:"],   // 기기에 무엇이든 저장하면 필수. localStorage 키 접두사 목록 → 맨 아래 '기록 전체 삭제'
   "storageNote": "집중 기록과 설정"  // 확인창에 나오는 '무엇이 지워지는지'
 }
 ```
+
+### 기록 전체 삭제 (`storage`)
+
+- `storage` 가 있으면(빈 목록 `[]` 이어도) 페이지 맨 아래에 '기록 전체 삭제' 줄이 붙는다. 없으면 붙지 않는다.
+- 누르면 그 도구 것만 지우고 새로고침한다:
+  - localStorage: `storage` 의 접두사로 시작하는 키
+  - Cache Storage: `dbt-<slug>-` 로 시작하는 캐시(페이지·JS)와 `dbt-models-<slug>`(받아 둔 AI 모델·엔진)
+- localStorage 는 안 쓰고 모델만 받아 두는 설치형 도구도 `"storage": []` 와 `"storageNote": "받아 둔 AI 모델"` 을 적는다
+  (remove-background 참고). 모델도 쓰고 기록도 저장하면 `storageNote` 에 둘 다 적는다(posture-alert 참고).
+- IndexedDB 는 지우지 않는다. IndexedDB 를 쓰는 도구는 이름을 `<slug>-` 로 시작하게 하고 이 줄의 코드(vite.config.js resetRow)를 함께 고친다.
 
 (위 `//` 설명은 문서용이다. 실제 meta.json 에는 주석을 넣지 않는다.)
 
@@ -54,8 +64,10 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
 - 빌드가 `<slug>/manifest.webmanifest` 와 `<slug>/sw.js` 를 만들고 머리말에 연결한다. 직접 만들지 않는다.
 - 설치 아이콘 PNG 는 `node scripts/pwa-icons.cjs <slug>` 로 `public/<slug>/` 에 만든다(없으면 빌드가 멈춘다).
   글자 아이콘이면 `PRETENDARD_CSS=file:///…/pretendard.css` 를 주어 Pretendard 로 그린다.
-- 오프라인: 페이지와 JS·CSS 는 서비스 워커가 알아서 저장한다. AI 모델처럼 큰 파일은 `/models/` 경로나 모델 호스트에서 받으면
-  배포가 바뀌어도 지워지지 않는 별도 캐시에 들어간다.
+- 오프라인: 페이지와 JS·CSS 는 서비스 워커가 알아서 저장한다(캐시 `dbt-<slug>-<빌드>`, 새 배포 때 옛것은 지운다).
+  AI 모델처럼 큰 파일은 `/models/` 경로, `/mediapipe/` 엔진, 모델 호스트에서 받으면 배포가 바뀌어도 지워지지 않는
+  **도구별** 캐시 `dbt-models-<slug>` 에 들어간다. 받아 둔 모델이 있는지 볼 때는 `caches.match(url)` 이나
+  `caches.open('dbt-models-<slug>')` 를 쓴다. 모델을 받아 두는 도구는 meta.json 에 `storage` 를 적는다(위 '기록 전체 삭제').
 
 ## 3. index.html 뼈대
 
@@ -117,6 +129,8 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
 5. 휴대폰 화면(폭 360px)에서 가로로 넘치지 않게.
 6. 존댓말. 과장("최고", "완벽") 금지.
 7. 기기에 저장하는 키는 `<slug>:` 로 시작한다(다른 앱·도구와 같은 주소를 쓴다). meta.json 의 `storage` 에 적어 두면 맨 아래에 '기록 전체 삭제'가 붙는다.
+   Cache Storage 는 서비스 워커가 만들고 지운다. 도구 코드에서 캐시를 따로 만들지 않는다(만들면 '기록 전체 삭제'가 지우지 못한다).
+8. 누르는 곳(버튼·링크·접는 줄)은 높이 44px 이상. 공통 `button`·`button.small`·머리글 메뉴·자주 묻는 질문 줄은 이미 맞춰져 있으니 도구 스타일로 더 작게 줄이지 않는다.
 
 ## 6. 확인
 

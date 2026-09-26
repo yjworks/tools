@@ -62,7 +62,7 @@ const WASM_BASE = new URL('../mediapipe/1.0.1/', location.href).href;
 (async () => {
   const total = MODEL.bytes + WASM_BYTES.simd;
   let cached = false;
-  try { cached = !!(await (await caches.open('dbt-models')).match(MODEL.url)); } catch { /* 캐시를 못 읽으면 받는다고 안내 */ }
+  try { cached = !!(await (await caches.open('dbt-models-posture-alert')).match(MODEL.url)); } catch { /* 캐시를 못 읽으면 받는다고 안내 */ }
   $('#dlNote').textContent = cached
     ? '자세 인식 모델은 이 기기에 받아 둔 것을 씁니다.'
     : `처음 시작할 때 자세 인식 모델(${fmtMB(MODEL.bytes)})과 실행 파일(${fmtMB(WASM_BYTES.simd)})을 한 번 받습니다(합계 약 ${fmtMB(total)}). 다음부터는 기기에 저장된 파일을 씁니다.`;

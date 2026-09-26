@@ -9,5 +9,7 @@
   "color": "#a21caf",
   "category": "MultimediaApplication",
   "pwa": true,
-  "shortName": "누끼"
+  "shortName": "누끼",
+  "storage": [],
+  "storageNote": "받아 둔 AI 모델"
 }

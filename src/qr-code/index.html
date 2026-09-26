@@ -6,7 +6,8 @@
   .tabs { display: flex; gap: 6px; margin: 0 0 14px; }
   .tabs button { flex: 1; background: var(--accent-weak); color: var(--accent); }
   .tabs button[aria-selected=true] { background: var(--accent); color: #fff; }
-  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0 0 12px; }
+  /* 좁은 화면(폭 400px 안팎)에서는 한 줄에 하나씩 쌓여 고른 값이 잘리지 않는다 */
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin: 0 0 12px; }
   .opts select, .opts input { width: 100%; }
   .opts input[type=color] { height: 42px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); padding: 3px; }
   .opts .wide { grid-column: 1 / -1; }
@@ -67,14 +68,14 @@
       <div class="opts">
         <label class="field">오류 복원
           <select id="ecc">
-            <option value="L">낮음 L (약 7%)</option>
-            <option value="M" selected>보통 M (약 15%)</option>
-            <option value="Q">높음 Q (약 25%)</option>
-            <option value="H">최고 H (약 30%)</option>
+            <option value="L">낮음 L · 약 7%</option>
+            <option value="M" selected>보통 M · 약 15%</option>
+            <option value="Q">높음 Q · 약 25%</option>
+            <option value="H">최고 H · 약 30%</option>
           </select>
         </label>
         <label class="field">PNG 크기
-          <select id="px"><option value="256">약 256px</option><option value="512" selected>약 512px</option><option value="1024">약 1024px</option><option value="2048">약 2048px (인쇄용)</option></select>
+          <select id="px"><option value="256">약 256px</option><option value="512" selected>약 512px</option><option value="1024">약 1024px</option><option value="2048">약 2048px · 인쇄용</option></select>
         </label>
         <label class="field">점 색 <input type="color" id="fg" value="#000000"></label>
       </div>

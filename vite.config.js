@@ -86,23 +86,27 @@ const header = `<header class="site"><div class="wrap">
 <nav><a href="/#apps">앱</a><a href="/tools/">도구</a><a href="${cfg.blogUrl}">블로그</a></nav>
 </div></header>`;
 
-/* 기록을 저장하는 도구(meta.json "storage": 키 접두사 목록)는 맨 아래에 '기록 전체 삭제'를 둔다.
-   dibrain.dev 는 모든 앱·도구가 같은 주소를 쓰므로 그 도구의 키만 지운다(블로그 저장소 brand/README.md '기록 전체 삭제'). */
+/* 기록을 저장하는 도구(meta.json "storage": localStorage 키 접두사 목록, 빈 목록도 된다)는 맨 아래에 '기록 전체 삭제'를 둔다.
+   dibrain.dev 는 모든 앱·도구가 같은 주소를 쓰므로 그 도구 것만 지운다(블로그 저장소 brand/README.md '기록 전체 삭제'):
+   localStorage 는 접두사가 맞는 키, Cache Storage 는 그 도구의 캐시(dbt-<slug>-…: 페이지·JS, dbt-models-<slug>: 받아 둔 모델).
+   도구가 pagehide 때 기록을 다시 저장하는 경우가 있어(posture-alert), 새로고침으로 페이지를 떠날 때 한 번 더 지운다. */
 function resetRow(page) {
-  if (!page || !page.storage || !page.storage.length) return '';
+  if (!page || !Array.isArray(page.storage)) return '';
   const msg = `이 도구에 저장된 기록을 모두 지웁니다${page.storageNote ? `(${page.storageNote})` : ''}. 되돌릴 수 없습니다. 계속할까요?`;
   return `<p class="reset-row"><span>기록은 이 기기에만 저장됩니다.${page.storageNote ? ` (${esc(page.storageNote)})` : ''}</span>
 <button type="button" class="ghost small" id="db-reset">기록 전체 삭제</button></p>
-<script>(function(){var P=${JSON.stringify(page.storage)},M=${JSON.stringify(msg)};
+<script>(function(){var P=${JSON.stringify(page.storage)},C=${JSON.stringify(`dbt-${page.slug}-`)},D=${JSON.stringify(`dbt-models-${page.slug}`)},M=${JSON.stringify(msg)};
+function clear(){try{var ks=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(P.some(function(p){return k.indexOf(p)===0}))ks.push(k)}ks.forEach(function(k){localStorage.removeItem(k)})}catch(e){}}
 document.getElementById('db-reset').addEventListener('click',function(){if(!confirm(M))return;
-try{var ks=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(P.some(function(p){return k.indexOf(p)===0}))ks.push(k)}ks.forEach(function(k){localStorage.removeItem(k)})}catch(e){}
-location.reload()})})();</script>`;
+clear();addEventListener('pagehide',clear);
+var done=function(){location.reload()};
+try{if(!window.caches)return done();caches.keys().then(function(ns){return Promise.all(ns.filter(function(n){return n.indexOf(C)===0||n===D}).map(function(n){return caches.delete(n)}))}).then(done,done)}catch(e){done()}})})();</script>`;
 }
 
 const footer = (page) => `<footer class="site"><div class="wrap">
 ${resetRow(page)}
 <p class="privacy">🔒 이 사이트의 도구는 파일을 서버로 보내지 않습니다. 모든 처리는 지금 쓰는 브라우저 안에서 끝납니다.</p>
-<p><span>© DigitalBrain</span> · <a href="/tools/">도구 목록</a> · <a href="${cfg.blogUrl}privacy/">개인정보처리방침</a> · <a href="mailto:${cfg.contact}">문의·오류 제보</a> · <a href="/tools/third-party-licenses.txt">오픈소스 라이선스</a></p>
+<p class="links"><span>© DigitalBrain</span> · <a href="${cfg.blogUrl}about/">소개</a> · <a href="${cfg.blogUrl}privacy/">개인정보처리방침</a> · <a href="mailto:${cfg.contact}">문의·오류 제보</a> · <a href="/tools/">도구 목록</a> · <a href="/tools/third-party-licenses.txt">오픈소스 라이선스</a></p>
 </div></footer>`;
 
 /* 광고는 도구와 설명 사이, 버튼에서 떨어진 곳 한 군데에만 둔다(실수 클릭 유도 금지). 승인 전에는 아무것도 나오지 않는다. */
@@ -140,18 +144,22 @@ function toolList(tools) {
 
 /* 설치형 도구의 서비스 워커. 페이지는 네트워크 먼저(새 배포가 바로 보이게), 나머지는 캐시 먼저.
    AI 모델처럼 큰 파일(/models/ 경로, /mediapipe/<버전>/ 엔진, 모델 저장소 호스트)은 배포가 바뀌어도 지우지 않는 별도 캐시에 둔다.
+   그 캐시는 도구마다 따로(dbt-models-<slug>) 둬서 '기록 전체 삭제'가 그 도구 것만 지울 수 있게 한다.
+   이름을 dbt-<slug>- 로 시작하게 하면 activate 가 옛 배포 캐시로 알고 지우므로 그렇게 짓지 않는다.
+   예전에 모든 도구가 같이 쓰던 dbt-models 는 activate 때 지운다(모델은 다음에 쓸 때 다시 받는다).
    광고·통계 요청은 건드리지 않는다. */
 function swSource(slug) {
   return `/* ${slug} — scripts 가 빌드 때 만든 파일. 직접 고치지 말 것 (vite.config.js swSource). */
 const PREFIX = 'dbt-${slug}-';
 const CACHE = PREFIX + '${BUILD_ID}';
-const MODELS = 'dbt-models';
+const MODELS = 'dbt-models-${slug}';
+const LEGACY = ['dbt-models'];
 const MODEL_HOST = /(^|\\.)(huggingface\\.co|hf\\.co)$|^storage\\.googleapis\\.com$|^cdn\\.jsdelivr\\.net$/;
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './manifest.webmanifest'])).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith(PREFIX) && k !== CACHE).map((k) => caches.delete(k))))
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => (k.startsWith(PREFIX) && k !== CACHE) || LEGACY.includes(k)).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', (e) => {
