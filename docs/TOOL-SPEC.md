@@ -1,5 +1,8 @@
 # 도구 만들기 규격
 
+**도구냐 앱이냐**: 한 페이지에서 끝나는 기능은 여기(도구)에 넣는다. AI 샷 정도로 화면·기능이 여럿 얽힌 것은
+도구가 아니라 **독립 저장소의 앱**으로 만든다(블로그 저장소 brand/README.md 의 '앱 추가' 참고).
+
 dibrain.dev/tools 에 도구를 추가할 때 지키는 규칙. 사람이든 AI든 이 문서대로 만든다.
 
 ## 1. 파일
@@ -30,7 +33,6 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
   "color": "#hex (배경색, 흰 글씨가 잘 보이는 진한 색)",
   "category": "UtilitiesApplication | GameApplication | MultimediaApplication | FinanceApplication",
 
-  "kind": "app",          // 선택. 거의 쓰지 않는다: 여러 기능이 묶인 큰 앱(키즈랩·딴짓·AI 샷 급)만 "app". 단일 기능은 모두 도구
   "pwa": true,            // 선택. 홈 화면 설치 + 오프라인. 켜면 아래 '설치형 앱' 규칙을 따른다
   "shortName": "누끼"      // 선택. 홈 화면 아이콘 밑 이름(6자 안팎)
 }
