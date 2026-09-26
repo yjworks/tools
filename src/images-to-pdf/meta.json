@@ -3,7 +3,7 @@
   "title": "사진 여러 장 PDF로 합치기 — JPG·PNG를 PDF 한 파일로, 업로드 없이",
   "desc": "사진·스캔 이미지 여러 장을 순서대로 PDF 한 파일로 묶습니다. A4 맞춤, 여백, 순서 바꾸기. 서버로 보내지 않습니다.",
   "keywords": ["사진 PDF 변환", "JPG PDF 변환", "이미지 PDF 합치기", "사진 여러장 PDF", "PNG PDF 변환"],
-  "group": "사진·이미지",
+  "group": "PDF",
   "order": 50,
   "iconText": "PDF",
   "color": "#d4380d"

@@ -106,7 +106,7 @@ function related(tools, slug) {
 
 /* 분류 순서와 주소 조각. dibrain.dev 첫 화면(블로그 저장소 hub/index.html, scripts/build_hub.py)과 같게 둔다.
    여기 없는 분류는 뒤에 붙는다. */
-const GROUPS = [['생활 계산', 'life'], ['문서·텍스트', 'docs'], ['사진·이미지', 'image'], ['오디오·영상', 'media'], ['공부·집중', 'focus'], ['모임·놀이', 'play'], ['3D 프린팅', '3d']];
+const GROUPS = [['생활 계산', 'life'], ['문서·텍스트', 'docs'], ['PDF', 'pdf'], ['사진 편집', 'photo'], ['이미지 변환', 'image'], ['오디오·영상', 'media'], ['공부·집중', 'focus'], ['모임·놀이', 'play'], ['3D 프린팅', '3d']];
 
 function toolList(tools) {
   const order = GROUPS.map(([g]) => g), ids = Object.fromEntries(GROUPS), by = {};

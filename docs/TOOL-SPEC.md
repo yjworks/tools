@@ -24,13 +24,13 @@ test/<slug>.test.js     ← vitest. 로직마다 실제 값으로 검증
   "title": "검색 결과 제목 — 사람들이 실제로 검색하는 말을 넣는다",
   "desc": "검색 결과 설명 1~2문장 (90자 안팎). 무엇을, 어떻게, 업로드 없음 여부",
   "keywords": ["검색어", "..."],
-  "group": "문서·텍스트 | 사진·이미지 | 오디오·영상 | 생활 계산 | 공부·집중 | 모임·놀이 | 3D 프린팅",
+  "group": "생활 계산 | 문서·텍스트 | PDF | 사진 편집 | 이미지 변환 | 오디오·영상 | 공부·집중 | 모임·놀이 | 3D 프린팅",
   "order": 100,
   "iconText": "아이콘에 들어갈 1~3글자",
   "color": "#hex (배경색, 흰 글씨가 잘 보이는 진한 색)",
   "category": "UtilitiesApplication | GameApplication | MultimediaApplication | FinanceApplication",
 
-  "kind": "app",          // 선택. 오래 쓰는 앱이면 "app" → dibrain.dev 첫 화면의 '앱' 칸에 나온다. 없으면 도구
+  "kind": "app",          // 선택. 거의 쓰지 않는다: 여러 기능이 묶인 큰 앱(키즈랩·딴짓·AI 샷 급)만 "app". 단일 기능은 모두 도구
   "pwa": true,            // 선택. 홈 화면 설치 + 오프라인. 켜면 아래 '설치형 앱' 규칙을 따른다
   "shortName": "누끼"      // 선택. 홈 화면 아이콘 밑 이름(6자 안팎)
 }
