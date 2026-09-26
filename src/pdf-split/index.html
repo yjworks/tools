@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .modes { display: flex; flex-wrap: wrap; gap: 6px; margin: 16px 0 12px; }
+  .modes label { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 14.5px; cursor: pointer; background: var(--card); }
+  .modes label:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); color: var(--accent); font-weight: 700; }
+  .modes input { margin: 0; }
+  .fileinfo { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-top: 14px; font-size: 15px; }
+  .fileinfo b { word-break: break-all; }
+  #ranges { width: 100%; max-width: 420px; }
+  .plan { font-size: 14px; margin: 8px 0 0; }
+  .plan .err { color: var(--bad); }
+  .plan ol { margin: 6px 0 0; padding-left: 1.4em; max-height: 180px; overflow: auto; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; margin-top: 14px; }
+  .pg { position: relative; background: var(--bg); border: 2px solid transparent; border-radius: 12px; padding: 6px 6px 4px; font: inherit; color: inherit; text-align: left; display: block; width: 100%; cursor: default; }
+  .grid.picking .pg { cursor: pointer; }
+  .pg[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-weak); }
+  .pg.out { opacity: .38; }
+  .pg .box { aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; border-radius: 6px; }
+  .pg .box > * { max-width: 100%; max-height: 100%; box-shadow: 0 1px 4px rgba(0,0,0,.18); background: #fff; }
+  .pg .ph { width: 70%; aspect-ratio: 1 / 1.41; display: grid; place-items: center; color: #999; font-size: 12px; }
+  .pg .cap { display: flex; justify-content: space-between; gap: 4px; font-size: 12.5px; margin-top: 4px; color: var(--sub); }
+  .pg .cap b { color: var(--text); }
+  .pg .grp { font-weight: 700; border-radius: 6px; padding: 0 5px; color: #fff; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; }
+  .pg .check { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: var(--card); display: none; place-items: center; font-size: 13px; color: #fff; }
+  .grid.picking .pg .check { display: grid; }
+  .pg[aria-pressed="true"] .check { background: var(--accent); border-color: var(--accent); }
+  .results { list-style: none; margin: 12px 0 0; padding: 0; }
+  .results li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14.5px; }
+  .results li:first-child { border-top: 0; }
+  .results .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .results a { white-space: nowrap; font-weight: 700; }
+  @media (max-width: 420px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; } }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>PDF 나누기</h1>
+  <p class="lede">PDF 한 파일을 쪽 범위대로 여러 파일로 나누거나, 필요한 쪽만 뽑아 새 PDF로 저장합니다. 파일이 여러 개면 ZIP 하나로 묶어 받습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>나눌 PDF를 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">PDF 한 개</span>
+      <input type="file" accept="application/pdf,.pdf">
+    </label>
+
+    <div id="panel" hidden>
+      <p class="fileinfo"><b id="fileName"></b><span class="muted" id="fileMeta"></span></p>
+
+      <div class="modes" role="radiogroup" aria-label="나누는 방법">
+        <label><input type="radio" name="mode" value="ranges" checked> 범위로 나누기</label>
+        <label><input type="radio" name="mode" value="every"> N쪽씩 나누기</label>
+        <label><input type="radio" name="mode" value="pick"> 쪽 골라 뽑기</label>
+      </div>
+
+      <div id="optRanges">
+        <label class="field">쪽 범위 (쉼표로 구분, 범위마다 파일 하나)
+          <input type="text" id="ranges" placeholder="예: 1-3, 5, 8-" autocomplete="off" inputmode="text">
+        </label>
+        <p class="muted" style="margin:6px 0 0">"8-"은 8쪽부터 끝까지, "-3"은 처음부터 3쪽까지입니다.</p>
+      </div>
+      <div id="optEvery" hidden>
+        <label class="field">몇 쪽씩
+          <input type="number" id="every" value="1" min="1" step="1" style="width:110px">
+        </label>
+      </div>
+      <div id="optPick" hidden>
+        <div class="row">
+          <button class="ghost small" id="pickAll">모두</button>
+          <button class="ghost small" id="pickNone">없음</button>
+          <button class="ghost small" id="pickOdd">홀수 쪽</button>
+          <button class="ghost small" id="pickEven">짝수 쪽</button>
+          <label class="field" style="flex-direction:row;align-items:center;gap:8px">저장 방식
+            <select id="pickOut"><option value="pick-one">고른 쪽을 한 파일로</option><option value="pick-each">고른 쪽마다 따로</option></select>
+          </label>
+        </div>
+        <p class="muted" style="margin:0">아래 쪽 그림을 눌러 고르세요.</p>
+      </div>
+
+      <div class="plan" id="plan" aria-live="polite"></div>
+      <div class="row" style="margin-top:12px">
+        <button id="run" disabled>나누기</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <div id="resultBox" hidden>
+        <div class="row"><button id="zipBtn" class="ghost">ZIP으로 모두 받기</button></div>
+        <ul class="results" id="results"></ul>
+      </div>
+
+      <div class="grid" id="grid" aria-label="쪽 미리보기"></div>
+    </div>
+    <p class="status" id="status0" role="status"></p>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>PDF 한 개를 놓으면 쪽 수와 쪽 그림이 나타납니다.</li>
+      <li>나누는 방법을 고릅니다.
+        <ul>
+          <li><b>범위로 나누기</b>: <code>1-3, 5, 8-</code>처럼 적으면 1~3쪽, 5쪽, 8쪽~끝, 이렇게 세 파일이 생깁니다. 쪽 그림 아래 색 번호가 그 쪽이 들어갈 파일입니다.</li>
+          <li><b>N쪽씩 나누기</b>: 2를 적으면 1~2쪽, 3~4쪽… 두 쪽씩 끊어 저장합니다. 1이면 쪽마다 한 파일입니다.</li>
+          <li><b>쪽 골라 뽑기</b>: 쪽 그림을 눌러 고른 뒤, 한 파일로 모을지 쪽마다 따로 저장할지 정합니다.</li>
+        </ul>
+      </li>
+      <li><b>나누기</b>를 누릅니다. 결과가 한 파일이면 PDF로, 여러 파일이면 ZIP으로 바로 저장되고, 아래 목록에서 하나씩 받을 수도 있습니다.</li>
+    </ol>
+
+    <h2>범위 적는 법과 나누는 방식</h2>
+    <table>
+      <tr><th>적은 값</th><th>뜻</th></tr>
+      <tr><td><code>1-3</code></td><td>1쪽부터 3쪽까지(양 끝 포함)</td></tr>
+      <tr><td><code>5</code></td><td>5쪽 한 쪽</td></tr>
+      <tr><td><code>8-</code> 또는 <code>8-끝</code></td><td>8쪽부터 마지막 쪽까지</td></tr>
+      <tr><td><code>-3</code></td><td>첫 쪽부터 3쪽까지</td></tr>
+      <tr><td><code>2~4</code>, <code>2 - 4</code></td><td>물결표나 띄어 쓴 대시도 범위로 읽습니다</td></tr>
+    </table>
+    <p>범위끼리 겹쳐도 됩니다(예: <code>1-5, 3-7</code>이면 3~5쪽이 두 파일에 모두 들어갑니다). 문서 쪽 수를 넘는 번호, 앞 번호가 뒤 번호보다 큰 범위는 빨간 글씨로 알려 주고 그 부분만 빼고 나눕니다.</p>
+    <p>나눌 때 쪽을 그림으로 바꾸지 않고 원래 데이터를 그대로 옮기므로, 글자는 선택·검색되고 화질도 달라지지 않습니다. 각 파일에는 그 파일에 들어간 쪽이 쓰는 글꼴·사진만 담기므로 파일 크기는 쪽 수에 비례해 작아집니다. 다만 여러 쪽이 함께 쓰는 글꼴은 파일마다 한 벌씩 들어가서, 나눈 파일 크기의 합은 원본보다 커질 수 있습니다.</p>
+    <p>책갈피는 각 파일에 들어간 쪽을 가리키는 것만 남기고, 같은 파일 안 쪽으로 가는 문서 안 링크도 새 쪽 번호에 맞춰 이어 둡니다. 첨부 파일, 입력 칸의 입력 기능, 전자서명의 효력은 나눈 파일로 넘어가지 않습니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>쪽마다 한 파일로 나누고 싶어요.</summary>
+      <p><b>N쪽씩 나누기</b>에 1을 적으면 됩니다. 파일 이름은 <code>원래이름_p01.pdf</code>처럼 쪽 번호가 붙고, 번호 자릿수를 맞춰 두어 폴더에서 이름순으로 정렬해도 순서가 흐트러지지 않습니다.</p></details>
+    <details><summary>암호가 걸린 PDF도 나눌 수 있나요?</summary>
+      <p>나눌 수 없습니다. 열기 암호가 있거나 인쇄·복사가 제한된 PDF는 내용이 암호화되어 있는데, 이 도구에서 쓰는 pdf-lib가 암호화를 풀지 못합니다. 문서에 대한 권한이 있다면 원래 프로그램에서 보안을 해제해 저장한 다음 넣어 주세요.</p></details>
+    <details><summary>ZIP을 풀었더니 파일 이름이 깨져요.</summary>
+      <p>ZIP 안의 한글 이름은 UTF-8 표시를 붙여 저장합니다. 윈도우 탐색기, macOS, 반디집 같은 최근 압축 프로그램은 제대로 읽지만, 아주 오래된 압축 프로그램은 이름이 깨질 수 있습니다. 그럴 때는 아래 목록에서 파일을 하나씩 받으세요.</p></details>
+    <details><summary>한 번에 몇 개까지 만들 수 있나요?</summary>
+      <p>한 번에 500개까지입니다. 모든 파일을 기기 메모리 안에서 만든 뒤 ZIP으로 묶기 때문에, 그보다 많으면 휴대폰에서 브라우저가 멈출 수 있어서 정한 값입니다. 더 필요하면 범위를 나눠 두세 번에 걸쳐 작업해 주세요.</p></details>
+    <details><summary>원본 파일은 바뀌나요? 서버로 보내지나요?</summary>
+      <p>원본은 그대로이고, 새 파일만 만들어 저장합니다. 파일은 서버로 보내지 않으며 읽기·미리보기(pdf.js)·나누기(pdf-lib)·ZIP 묶기(fflate) 모두 브라우저 안에서 합니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

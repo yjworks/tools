@@ -1,0 +1,11 @@
+{
+  "name": "PDF 용량 줄이기",
+  "title": "PDF 용량 줄이기 — 화질 그대로 정리부터 사진 압축까지, 업로드 없이",
+  "desc": "PDF 속 안 쓰는 데이터를 지우거나 사진만 다시 압축해 용량을 줄입니다. 줄어든 크기를 확인한 뒤 저장하고, 파일은 서버로 보내지 않습니다.",
+  "keywords": ["PDF 용량 줄이기", "PDF 압축", "PDF 크기 줄이기", "PDF 파일 용량", "PDF 이미지 압축", "PDF 메일 첨부 용량"],
+  "group": "PDF",
+  "order": 43,
+  "iconText": "압축",
+  "color": "#4a5d23",
+  "category": "UtilitiesApplication"
+}

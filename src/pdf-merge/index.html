@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .pdfm-files li { flex-wrap: nowrap; }
+  .pdfm-files .grip, .pg .grip { touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .pdfm-files .grip { flex: 0 0 auto; width: 34px; height: 40px; display: grid; place-items: center; color: var(--sub); font-size: 18px; border-radius: 8px; }
+  .pdfm-files .swatch { width: 10px; height: 36px; border-radius: 4px; flex: 0 0 auto; }
+  .pdfm-files .btns { display: flex; gap: 4px; flex: 0 0 auto; }
+  .pdfm-files button.small { min-width: 36px; min-height: 36px; justify-content: center; }
+  .pdfm-files li.dragging, .pg.dragging { opacity: .35; }
+  .pdfm-files li.drop-before { box-shadow: inset 0 3px 0 var(--accent); }
+  .pdfm-files li.drop-after { box-shadow: inset 0 -3px 0 var(--accent); }
+  .drag-ghost { opacity: .92; box-shadow: 0 10px 28px rgba(0,0,0,.25); background: var(--card); border-radius: 12px; list-style: none; display: flex; align-items: center; gap: 10px; }
+  body.is-dragging { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+
+  .pages-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 18px 0 8px; }
+  .pages-head h2 { font-size: 16px; margin: 0; }
+  .pages-head .muted { flex: 1 1 100%; }
+  .pages-head h2 .muted { flex: none; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
+  .pg { position: relative; background: var(--bg); border: 2px solid transparent; border-radius: 12px; padding: 6px 6px 4px; cursor: pointer; outline: none; }
+  .pg:focus-visible { border-color: var(--accent); }
+  .pg[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-weak); }
+  .pg .box { aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; border-radius: 6px; }
+  .pg .box > * { max-width: 100%; max-height: 100%; box-shadow: 0 1px 4px rgba(0,0,0,.18); background: #fff; transition: transform .15s; }
+  .pg .box .ph { width: 70%; aspect-ratio: 1 / 1.41; display: grid; place-items: center; color: #999; font-size: 12px; }
+  .pg .cap { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--sub); margin-top: 4px; line-height: 1.3; min-width: 0; }
+  .pg .cap b { color: var(--text); font-size: 13px; }
+  .pg .cap .src { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+  .pg .dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+  .pg .grip { position: absolute; top: 4px; right: 4px; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 8px; background: color-mix(in srgb, var(--card) 60%, transparent); color: var(--sub); font-size: 16px; }
+  .pg .check { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line); background: color-mix(in srgb, var(--card) 60%, transparent); display: grid; place-items: center; font-size: 13px; color: #fff; }
+  .pg[aria-pressed="true"] .check { background: var(--accent); border-color: var(--accent); }
+  .pg .rot { position: absolute; bottom: 30px; right: 8px; font-size: 11px; background: var(--text); color: var(--card); border-radius: 6px; padding: 0 5px; }
+  .pg.drop-before { box-shadow: -5px 0 0 -1px var(--accent); }
+  .pg.drop-after { box-shadow: 5px 0 0 -1px var(--accent); }
+
+  .actbar { position: sticky; bottom: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; background: var(--card); border-top: 1px solid var(--line); padding: 10px 0 12px; margin-top: 12px; }
+  .actbar .count { font-size: 14px; font-weight: 700; margin-right: auto; }
+  .actbar button { padding: 8px 11px; font-size: 14px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 14px 0 10px; font-size: 14.5px; }
+  .opts label { display: inline-flex; gap: 6px; align-items: center; }
+  .result { margin-top: 10px; font-size: 14.5px; }
+  .result ul { margin: 6px 0 0; padding-left: 1.2em; color: var(--sub); }
+  @media (max-width: 420px) {
+    .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .pdfm-files .name small { display: block; }
+  }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>PDF 합치기</h1>
+  <p class="lede">여러 PDF를 한 파일로 합칩니다. 쪽 순서를 끌어서 바꾸고, 필요 없는 쪽은 빼고, 옆으로 누운 쪽은 돌려서 저장할 수 있습니다. 사진도 쪽으로 넣을 수 있습니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>PDF나 사진을 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">PDF · JPG · PNG · WEBP, 여러 번 나눠 넣으면 뒤에 이어 붙습니다</span>
+      <input type="file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp" multiple>
+    </label>
+
+    <ul class="files pdfm-files" id="files" aria-label="넣은 파일"></ul>
+
+    <div id="pagesPanel" hidden>
+      <div class="pages-head">
+        <h2>쪽 순서 <span class="muted" id="pageCount"></span></h2>
+        <span class="muted">쪽을 눌러 고른 뒤 아래 버튼으로 옮기거나 돌립니다. ⠿ 를 잡고 끌어도 됩니다. 점 색은 파일 목록의 색과 같습니다.</span>
+      </div>
+      <div class="grid" id="grid" role="group" aria-label="합칠 쪽"></div>
+      <div class="actbar" id="actbar" hidden>
+        <span class="count" id="selCount"></span>
+        <button class="ghost" id="actPrev" title="고른 쪽을 한 칸 앞으로">◀ 앞으로</button>
+        <button class="ghost" id="actNext" title="고른 쪽을 한 칸 뒤로">뒤로 ▶</button>
+        <button class="ghost" id="actLeft" title="왼쪽으로 90도">↺ 왼쪽</button>
+        <button class="ghost" id="actRight" title="오른쪽으로 90도">↻ 오른쪽</button>
+        <button class="ghost" id="actDel" title="고른 쪽 빼기">빼기</button>
+        <button class="ghost" id="actNone">선택 풀기</button>
+      </div>
+
+      <div class="opts">
+        <label><input type="checkbox" id="keepOutline" checked> 원본 책갈피 유지</label>
+        <label><input type="checkbox" id="fileBookmarks"> 파일마다 책갈피 만들기</label>
+        <label id="imgFitWrap" hidden>사진 쪽 크기
+          <select id="imgFit"><option value="a4">A4에 맞춤</option><option value="image">사진 크기 그대로</option></select>
+        </label>
+      </div>
+      <div class="row">
+        <label class="field">저장할 파일 이름
+          <input type="text" id="fname" value="합친문서" style="width:200px">
+        </label>
+      </div>
+      <div class="row">
+        <button id="make" disabled>PDF 합치기</button>
+        <button id="selAll" class="ghost">모두 고르기</button>
+        <button id="reset" class="ghost">쪽 되돌리기</button>
+        <button id="clear" class="ghost">모두 빼기</button>
+      </div>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+    <div class="result" id="result" hidden></div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>합칠 PDF를 한꺼번에 놓습니다. 영수증 사진처럼 쪽으로 넣고 싶은 사진(JPG·PNG·WEBP)도 함께 놓을 수 있습니다.</li>
+      <li><b>파일 목록</b>에서 파일 단위 순서를 정합니다. ▲▼ 버튼이나 왼쪽 ⠿ 손잡이로 옮기면 아래 쪽 목록이 파일별로 다시 정렬됩니다.</li>
+      <li><b>쪽 목록</b>에서 쪽을 눌러 고르면 아래에 버튼 줄이 나타납니다. 여러 쪽을 함께 골라 한 번에 앞뒤로 옮기거나, 90도씩 돌리거나, 뺄 수 있습니다. PC에서는 쪽을 마우스로 바로 끌어 놓아도 되고, 휴대폰에서는 오른쪽 위 ⠿ 를 잡고 끕니다.</li>
+      <li>이름을 정하고 <b>PDF 합치기</b>를 누르면 한 파일로 저장됩니다. 원본 파일은 바뀌지 않습니다.</li>
+    </ol>
+
+    <h2>합칠 때 무엇이 그대로 남고 무엇이 빠지나요</h2>
+    <p>이 도구는 쪽을 그림으로 바꾸지 않고, 쪽을 이루는 글자·글꼴·도형·사진 데이터를 그대로 새 파일로 옮깁니다(pdf-lib의 쪽 복사 기능). 그래서 글자는 합친 뒤에도 선택·검색되고, 화질도 원본과 같습니다. 파일 크기는 대체로 원본 크기의 합과 비슷하거나 조금 작습니다.</p>
+    <table>
+      <tr><th>항목</th><th>합친 파일에서</th></tr>
+      <tr><td>글자·사진·도형, 쪽 크기</td><td>그대로</td></tr>
+      <tr><td>쪽 회전</td><td>원래 회전에 이 도구에서 돌린 각도를 더해 저장</td></tr>
+      <tr><td>책갈피(목차 창)</td><td>남은 쪽을 가리키는 것만 옮김. 뺀 쪽을 가리키던 항목은 빠지고, 그 아래 항목이 남아 있으면 첫 항목 쪽으로 이어 둠</td></tr>
+      <tr><td>웹 주소 링크</td><td>그대로</td></tr>
+      <tr><td>문서 안 링크(목차를 누르면 해당 쪽으로 이동)</td><td>같은 원본 안의 쪽이면 새 쪽 번호로 다시 연결. 가리키던 쪽을 뺐으면 그 링크는 지움</td></tr>
+      <tr><td>입력 칸(서식 PDF)</td><td>보이는 모양은 남지만, 합친 파일에서는 칸에 입력이 안 될 수 있음</td></tr>
+      <tr><td>첨부 파일, 문서 전체에 걸린 스크립트, 쪽 번호 이름(i, ii…), 레이어 설정, 접근성 태그</td><td>옮기지 않음</td></tr>
+      <tr><td>전자서명</td><td>합치면 파일 내용이 바뀌므로 서명은 효력이 없어짐</td></tr>
+    </table>
+
+    <h3>암호가 걸린 PDF</h3>
+    <p>열 때 암호를 묻는 PDF와, 암호 없이 열리지만 인쇄·복사 제한이 걸린 PDF는 모두 내용이 암호화되어 있습니다. 이 도구가 쓰는 pdf-lib는 암호화를 풀지 못하므로, 그런 파일은 목록에 "암호화됨"으로 표시하고 합치지 않습니다. 권한이 있는 문서라면 원래 만든 프로그램에서 암호를 해제해 다시 저장한 뒤 넣어 주세요.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>파일 순서를 바꿨더니 제가 섞어 둔 쪽 순서가 풀렸어요.</summary>
+      <p>파일 목록에서 순서를 바꾸면 쪽이 파일별로 다시 모입니다(한 파일 안의 순서와 회전은 유지). 여러 파일의 쪽을 섞어 배치하려면 파일 순서를 먼저 정한 다음 쪽 목록에서 옮기세요. 쪽 목록을 처음 상태로 돌리려면 <b>쪽 되돌리기</b>를 누릅니다.</p></details>
+    <details><summary>몇 개, 몇 쪽까지 합칠 수 있나요?</summary>
+      <p>따로 정한 제한은 없습니다. 다만 모든 작업이 기기 메모리 안에서 이뤄지므로, 합친 결과가 수백 MB에 이르면 휴대폰에서는 멈출 수 있습니다. 쪽 미리보기는 화면에 보이는 것부터 차례로 그리기 때문에 쪽이 많아도 목록은 바로 쓸 수 있습니다.</p></details>
+    <details><summary>사진은 어떤 크기로 들어가나요?</summary>
+      <p>기본은 A4 쪽 가운데에 비율을 지켜 맞추고, 가로로 긴 사진은 가로 A4로 넣습니다. "사진 크기 그대로"를 고르면 쪽 크기가 사진 크기(96dpi 기준)와 같아집니다. JPG와 PNG는 다시 압축하지 않고 넣고, WEBP와 회전 정보가 있는 JPG만 방향을 바로잡아 JPG(품질 92%)로 다시 저장합니다.</p></details>
+    <details><summary>파일이 서버로 전송되나요?</summary>
+      <p>아닙니다. 파일 읽기, 미리보기 그리기(pdf.js), 합치기(pdf-lib) 모두 지금 열어 둔 브라우저 안에서 처리합니다. 통계에는 파일 개수·쪽 수 같은 숫자만 남고 파일 이름과 내용은 기록하지 않습니다.</p></details>
+    <details><summary>합친 PDF가 원본들 크기의 합보다 작아졌어요. 뭔가 빠진 건가요?</summary>
+      <p>빠진 쪽이 없다면 정상입니다. 새로 저장하면서 여러 객체를 묶어 압축하는 방식(객체 스트림)을 쓰고, 어떤 쪽에서도 쓰지 않는 데이터는 저장하지 않기 때문에 조금 작아질 수 있습니다. 뺀 쪽에만 쓰이던 사진·글꼴도 함께 빠집니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

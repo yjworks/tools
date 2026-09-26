@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<!--HEAD-->
+<style>
+  .fileinfo { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin: 14px 0 4px; font-size: 15px; }
+  .fileinfo b { word-break: break-all; }
+  .methods { display: grid; gap: 8px; margin: 14px 0 12px; }
+  .method { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; background: var(--card); }
+  .method:has(input:checked) { border-color: var(--accent); background: var(--accent-weak); }
+  .method:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+  .method input { margin-top: 4px; flex: 0 0 auto; }
+  .method b { display: block; font-size: 15.5px; }
+  .method span { display: block; font-size: 13.5px; color: var(--sub); line-height: 1.55; }
+  .warnbox { border-left: 4px solid var(--warn); background: color-mix(in srgb, var(--warn) 10%, transparent); padding: 10px 12px; border-radius: 8px; font-size: 14px; margin: 0 0 12px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 6px 0 12px; font-size: 14.5px; }
+  .opts label { display: inline-flex; gap: 6px; align-items: center; }
+  .sizes { margin-top: 14px; display: grid; gap: 8px; }
+  .bar { position: relative; height: 26px; border-radius: 8px; background: var(--bg); overflow: hidden; }
+  .bar i { position: absolute; inset: 0 auto 0 0; border-radius: 8px; }
+  .bar span { position: relative; z-index: 1; padding: 0 10px; font-size: 13.5px; line-height: 26px; font-weight: 700; white-space: nowrap; }
+  .bar.before i { background: color-mix(in srgb, var(--sub) 30%, transparent); }
+  .bar.after i { background: color-mix(in srgb, var(--ok) 35%, transparent); }
+  .bar.after.worse i { background: color-mix(in srgb, var(--bad) 30%, transparent); }
+  .detail { font-size: 13.5px; color: var(--sub); margin: 6px 0 0; padding-left: 1.2em; }
+</style>
+</head>
+<body>
+<!--HEADER-->
+<main class="wrap">
+  <h1>PDF 용량 줄이기</h1>
+  <p class="lede">메일 첨부나 제출 사이트의 용량 제한에 걸리는 PDF를 작게 만듭니다. 화질을 건드리지 않는 정리부터 사진 다시 압축, 쪽 전체를 그림으로 바꾸는 방법까지 골라 쓰고, 줄어든 크기를 확인한 뒤 저장합니다.</p>
+  <p class="badge-local">🔒 업로드 없음 · 브라우저 안에서 처리</p>
+
+  <section class="tool" id="tool">
+    <label class="drop" tabindex="0">
+      <b>줄일 PDF를 끌어다 놓거나 눌러서 고르세요</b>
+      <span class="muted">PDF 한 개</span>
+      <input type="file" accept="application/pdf,.pdf">
+    </label>
+    <p class="status" id="status0" role="status"></p>
+
+    <div id="panel" hidden>
+      <p class="fileinfo"><b id="fileName"></b><span class="muted" id="fileMeta"></span></p>
+      <p class="muted" id="imgInfo" style="margin:0"></p>
+
+      <div class="methods" role="radiogroup" aria-label="줄이는 방법">
+        <label class="method"><input type="radio" name="method" value="lossless" checked>
+          <span><b>구조 정리 — 화질 그대로</b>
+          <span>안 쓰는 데이터와 중복된 글꼴·그림을 지우고 더 촘촘한 방식으로 다시 저장합니다. 보이는 내용은 한 픽셀도 바뀌지 않지만, 이미 잘 만들어진 PDF는 거의 줄지 않습니다.</span></span></label>
+        <label class="method"><input type="radio" name="method" value="images" id="mImages">
+          <span><b>사진만 다시 압축 — 글자는 그대로</b>
+          <span id="imagesDesc">문서에 들어 있는 JPEG 사진만 해상도와 품질을 낮춥니다. 글자·표·도형은 그대로라 선택·검색도 됩니다.</span></span></label>
+        <label class="method"><input type="radio" name="method" value="raster">
+          <span><b>모든 쪽을 그림으로 — 가장 작게</b>
+          <span>쪽마다 JPEG 그림 한 장으로 다시 만듭니다. 스캔 문서나 사진이 많은 문서에서 가장 많이 줄어듭니다.</span></span></label>
+      </div>
+
+      <p class="warnbox" id="rasterWarn" hidden>이 방법을 쓰면 <b>글자를 선택·복사·검색할 수 없게 됩니다.</b> 책갈피, 링크, 입력 칸도 사라지고, 작은 글씨는 낮은 품질에서 흐려질 수 있습니다. 원본은 따로 보관해 두세요.</p>
+
+      <div class="opts" id="levelWrap" hidden>
+        <label>품질
+          <select id="level">
+            <option value="high">높게</option>
+            <option value="medium" selected>보통</option>
+            <option value="low">낮게 (가장 작게)</option>
+          </select>
+        </label>
+        <span class="muted" id="levelDesc"></span>
+      </div>
+      <div class="opts" id="cleanOpts">
+        <label><input type="checkbox" id="optExtras" checked> 편집 프로그램 전용 데이터 지우기</label>
+        <label><input type="checkbox" id="optInfo"> 문서 정보(제목·작성자 등) 지우기</label>
+      </div>
+
+      <div class="row"><button id="run">줄이기</button><button id="save" hidden>저장</button></div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <div class="sizes" id="sizes" hidden>
+        <div class="bar before"><i id="barBefore"></i><span id="txtBefore"></span></div>
+        <div class="bar after" id="barAfterWrap"><i id="barAfter"></i><span id="txtAfter"></span></div>
+        <ul class="detail" id="detail"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!--AD-->
+
+  <article class="guide">
+    <h2>사용법</h2>
+    <ol>
+      <li>PDF를 놓으면 쪽 수, 파일 크기, 문서 안 JPEG 사진 개수가 나옵니다.</li>
+      <li>줄이는 방법을 고릅니다. 처음에는 <b>구조 정리</b>로 해 보고, 충분히 줄지 않으면 <b>사진만 다시 압축</b>, 그래도 크면 <b>모든 쪽을 그림으로</b> 순서로 시도하기를 권합니다.</li>
+      <li><b>줄이기</b>를 누르면 줄이기 전과 후의 크기가 막대로 나옵니다. 결과가 마음에 들면 <b>저장</b>을 누릅니다. 결과가 원본보다 작지 않으면 저장 버튼을 보여 주지 않습니다. 원본을 그대로 쓰시면 됩니다.</li>
+    </ol>
+
+    <h2>세 가지 방법이 실제로 하는 일</h2>
+    <h3>구조 정리</h3>
+    <p>PDF는 수정할 때마다 바뀐 부분을 파일 끝에 덧붙여 저장하는 경우가 많아, 이제는 어디에서도 쓰지 않는 옛 데이터가 남아 있곤 합니다. 이 방법은 문서의 뿌리에서부터 실제로 쓰이는 객체만 따라가 남기고 나머지를 버립니다. 같은 글꼴 파일이나 같은 로고 그림이 여러 벌 들어 있으면 하나로 합치고, 압축 없이 저장된 데이터는 Flate(ZIP과 같은 계열의 무손실 압축)로 압축합니다. 일러스트레이터처럼 편집 프로그램이 다시 편집하려고 넣어 둔 전용 데이터와 쪽 미리보기 그림도 지울 수 있습니다. 이 데이터를 지운 PDF는 보기·인쇄에는 문제가 없지만 그 프로그램에서 원래처럼 다시 편집하기는 어렵습니다.</p>
+    <h3>사진만 다시 압축</h3>
+    <p>PDF 안의 JPEG 사진을 브라우저에서 풀어 긴 변을 줄이고(높게 2,400·보통 1,600·낮게 1,100픽셀) 품질을 낮춰 다시 JPEG로 저장합니다. 새 사진이 원래보다 10% 이상 작아질 때만 바꿔 넣습니다. 글자와 도형은 건드리지 않습니다. CMYK 인쇄용 사진, 특수한 색 설정이 있는 사진, JPEG가 아닌 방식(PNG 계열, JPEG 2000, 흑백 팩스 방식)으로 들어 있는 그림은 색이 틀어질 위험이 있어 그대로 둡니다. 그래서 스캔 PDF라도 그림이 JPEG가 아니면 이 방법으로는 줄지 않을 수 있습니다.</p>
+    <h3>모든 쪽을 그림으로</h3>
+    <p>pdf.js로 쪽을 정한 해상도(높게 150·보통 110·낮게 80dpi)로 그린 다음, 그 그림을 JPEG로 압축해 같은 크기의 쪽에 한 장씩 붙입니다. 쪽 안에 무엇이 있든 결과 크기가 해상도와 품질로 정해지므로 가장 확실하게 줄어듭니다. 대신 글자가 글자가 아니라 그림이 되어 선택·검색·복사가 안 되고, 화면을 크게 확대하면 흐립니다. 제출 서류처럼 "읽을 수만 있으면 되는" 문서에 알맞습니다.</p>
+    <p>어느 방법이든 새 PDF를 만들어 저장하므로 원본 파일은 바뀌지 않습니다. 전자서명이 들어 있던 PDF는 줄인 파일에서 서명 효력이 없어집니다.</p>
+
+    <h2>자주 묻는 질문</h2>
+    <details><summary>얼마나 줄어드나요?</summary>
+      <p>문서마다 크게 다릅니다. 휴대폰으로 찍은 사진이 들어간 PDF나 고해상도 스캔 PDF는 사진 다시 압축이나 그림 변환으로 절반 이하가 되는 경우가 많습니다. 반면 글자 위주의 문서는 이미 작아서 몇 % 정도만 줄거나, 그림으로 바꾸면 오히려 커집니다. 그래서 결과 크기를 먼저 보여 드리고 저장 여부를 고르게 했습니다.</p></details>
+    <details><summary>"원본보다 작아지지 않았습니다"라고 나와요.</summary>
+      <p>이미 효율적으로 저장된 파일이라 고른 방법으로는 더 줄일 여지가 없다는 뜻입니다. 다른 방법이나 더 낮은 품질을 골라 보세요. 글자 위주의 짧은 문서는 원본이 가장 작은 경우가 흔합니다.</p></details>
+    <details><summary>암호가 걸린 PDF도 줄일 수 있나요?</summary>
+      <p>줄일 수 없습니다. 암호화된 PDF는 이 도구의 PDF 라이브러리(pdf-lib)가 풀지 못하고, 그림으로 바꾸는 방법은 문서에 걸린 인쇄·복사 제한을 우회하는 결과가 되므로 막아 두었습니다. 권한이 있다면 원래 프로그램에서 보안을 해제해 저장한 뒤 넣어 주세요.</p></details>
+    <details><summary>줄인 PDF에서 한글이 깨져 보여요.</summary>
+      <p>구조 정리와 사진 다시 압축은 글꼴을 바꾸지 않습니다. 그림으로 바꾸는 방법은 pdf.js가 그린 모습을 그대로 찍으므로, 문서에 글꼴이 들어 있지 않은 오래된 PDF는 기기에 있는 비슷한 글꼴로 대신 그려질 수 있습니다. 그럴 때는 다른 두 방법을 써 주세요.</p></details>
+    <details><summary>파일이 서버로 전송되나요?</summary>
+      <p>아닙니다. 분석, 사진 다시 압축(브라우저의 캔버스 기능), 쪽 그리기(pdf.js), 새 PDF 만들기(pdf-lib) 모두 이 기기 안에서 합니다. 통계에는 고른 방법과 줄어든 비율 같은 숫자만 남습니다.</p></details>
+  </article>
+
+  <!--RELATED-->
+</main>
+<!--FOOTER-->
+<script type="module" src="./main.js"></script>
+</body>
+</html>

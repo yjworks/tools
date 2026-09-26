@@ -1,0 +1,11 @@
+{
+  "name": "PDF 나누기",
+  "title": "PDF 나누기 — 쪽 범위·N쪽씩 분할, 원하는 페이지만 추출 (업로드 없음)",
+  "desc": "PDF를 1-3, 5, 8- 같은 범위나 N쪽씩 여러 파일로 나누고, 고른 쪽만 뽑아 저장합니다. 여러 개면 ZIP으로 받습니다. 서버로 보내지 않습니다.",
+  "keywords": ["PDF 나누기", "PDF 분할", "PDF 페이지 추출", "PDF 페이지 분리", "PDF 쪽 나누기", "PDF 특정 페이지 저장"],
+  "group": "PDF",
+  "order": 42,
+  "iconText": "분할",
+  "color": "#6f4e37",
+  "category": "UtilitiesApplication"
+}
